@@ -1,0 +1,66 @@
+.sidebar-wrapper .sidebar-header img{
+	height: 4.5rem !important;
+}
+#auth #auth-left .auth-logo img{
+	height: 6.5rem !important;
+}
+#auth #auth-left .auth-logo{
+	margin-bottom: 2.5rem !important;
+}
+.icon-xl { font-size: 60px; }
+.progress:has(.progress-bar[aria-valuenow="0"])
+{
+	display: none !important;
+}
+.form-check-input:disabled, .form-check-input[disabled] ~ .form-check-label, .form-check-input:disabled ~ .form-check-label{
+	opacity: 1 !important;
+}
+.pdf-content {
+	font-size: 7px;
+	color: black;
+	max-width: 800px;
+	margin: auto;
+	font-size: 14px; /* more reasonable font size */
+	word-break: normal;
+	white-space: normal;
+	text-align: center;
+}
+.leaflet-map {
+	height: 600px;
+}
+.choices__list--dropdown {
+	z-index: 3000 !important;
+	position: absolute !important;
+}
+
+.choices__list--multiple {
+	z-index: 2000 !important;
+	position: absolute !important;
+}
+.sidebar-wrapper{
+	background-color: #013769;
+	color: white;
+}
+.sidebar-wrapper .menu .submenu .submenu-item a, .sidebar-wrapper .menu .sidebar-link{
+	color: #9899ac;
+}
+.text-below-marker {
+	min-width: 100px;
+	left: -50px;
+	text-align: center;
+	min-height: 1.2em;
+	color: white;
+}
+.text-black td, .text-black tr{
+	border-color: black !important;
+	color: black !important;
+}
+#map-sheet{
+	-webkit-transition: all 1s ease;
+	-moz-transition: all 1s ease;
+	-o-transition: all 1s ease;
+	transition: all 1s ease;
+}
+.modal .choices{
+	width: calc(100% - 41px) !important;
+}
