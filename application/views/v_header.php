@@ -26,7 +26,7 @@ $tri_last_uri = $this->uri->segment($last-2);
 
     <link rel="stylesheet" href="./<?= base_url("assets") ?>/compiled/css/table-datatable-jquery.css">
     <link rel="stylesheet" href="<?= base_url("assets") ?>/extensions/choices.js/public/assets/styles/choices.css">
-    <link rel="stylesheet" href="<?= base_url("assets") ?>/custom.css">
+    <link rel="stylesheet" href="<?= base_url("assets") ?>/custom.css?v=3">
     <script src="<?= base_url("assets") ?>/extensions/jquery/jquery.min.js"></script>
 </head>
 
@@ -93,13 +93,55 @@ $tri_last_uri = $this->uri->segment($last-2);
             </li>
         <?php } ?>
         <?php if($this->session->userdata('whs_role')=="superadmin"||$this->session->userdata('whs_role')=="admin"){ ?>
-            <li class="sidebar-item <?= $last_uri == "hasil" ? "active" : "" ?>">
-                <a href="<?= base_url("hasil") ?>" class='sidebar-link'>
+            <li class="sidebar-item <?= $last_uri == "hasil-skor-tipelogi" ? "active" : "" ?>">
+                <a href="<?= base_url("hasil-skor-tipelogi") ?>" class='sidebar-link'>
                     <i class="bi bi-list-ol"></i>
-                    <span>Hasil</span>
+                    <span>Hasil Skor Tipelogi</span>
                 </a>
             </li>
         <?php } ?>
+        <?php if($this->session->userdata('whs_role')=="superadmin"||$this->session->userdata('whs_role')=="admin"){ ?>
+            <li class="sidebar-item <?= $last_uri == "buka-pengisian-data" ? "active" : "" ?>">
+                <a href="<?= base_url("buka-pengisian-data") ?>" class='sidebar-link'>
+                    <i class="bi bi-unlock"></i>
+                    <span>Buka Pengisian Data</span>
+                </a>
+            </li>
+        <?php } ?>
+        <?php if($this->session->userdata('whs_role')=="superadmin"){ ?>
+            <li class="sidebar-item <?= $last_uri == "tahun-pengisian-data" ? "active" : "" ?>">
+                <a href="<?= base_url("tahun-pengisian-data") ?>" class='sidebar-link'>
+                    <i class="bi bi-calendar-fill"></i>
+                    <span>Tahun Pengisian Data</span>
+                </a>
+            </li>
+        <?php } ?>
+
+
+        <?php if($this->session->userdata('whs_role')=="superadmin"){ ?>
+            <li class="sidebar-item has-sub <?= $sec_last_uri == "master" || $tri_last_uri == "master" ? "active" : "" ?>">
+                <a href="#" class='sidebar-link'>
+                    <i class="bi bi-database"></i>
+                    <span>Master Data</span>
+                </a>
+                <ul class="submenu submenu-open">
+                    <li class="submenu-item  <?= $sec_last_uri == "soal" ? "active" : "" ?>">
+                        <a href="<?= base_url("master/soal/").(date("Y")-1) ?>" class="submenu-link">Soal</a>
+                    </li>
+                    <li class="submenu-item  <?= $sec_last_uri == "pembagian_soal" ? "active" : "" ?>">
+                        <a href="<?= base_url("master/pembagian_soal/").(date("Y")-1) ?>" class="submenu-link">Pembagian Soal</a>
+                    </li>
+                    <li class="submenu-item  <?= $sec_last_uri == "dinas" ? "active" : "" ?>">
+                        <a href="<?= base_url("master/dinas/").(date("Y")-1) ?>" class="submenu-link">Dinas</a>
+                    </li>
+                    <li class="submenu-item  <?= $sec_last_uri == "badan" ? "active" : "" ?>">
+                        <a href="<?= base_url("master/badan/").(date("Y")-1) ?>" class="submenu-link">Badan</a>
+                    </li>
+                </ul>
+            </li>
+        <?php } ?>
+
+
         <?php if($this->session->userdata('whs_role')=="provinsi"||$this->session->userdata('whs_role')=="kabupaten"){ ?>
             <li class="sidebar-item <?= $last_uri == "informasi-data-umum" ? "active" : "" ?>">
                 <a href="<?= base_url("informasi-data-umum") ?>" class='sidebar-link'>
@@ -234,15 +276,34 @@ $tri_last_uri = $this->uri->segment($last-2);
 <script src="<?= base_url("assets") ?>/extensions/sweetalert2/sweetalert2.min.js" defer></script>
 <script src="<?= base_url("assets") ?>/extensions/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="<?= base_url("assets") ?>/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
-<script src="<?= base_url("assets") ?>/extensions/choices.js/public/assets/scripts/choices.js"></script>
+<!-- <script src="<?= base_url("assets") ?>/extensions/choices.js/public/assets/scripts/choices.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script type="text/javascript">
     $( document ).ready(function() {
+        <?php if (isset($info) ? $info : '') { ?>
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.addEventListener("mouseenter", Swal.stopTimer);
+                  toast.addEventListener("mouseleave", Swal.resumeTimer);
+              },
+          });
+            Toast.fire({
+                icon: "info",
+                title: "<?= $info ?>",
+            });
+            <?php
+        } ?>
         <?php if (isset($_SESSION['error']) ? $_SESSION['error'] : '') { ?>
             const Toast = Swal.mixin({
                 toast: true,
                 position: "top-end",
                 showConfirmButton: false,
-                timer: 5000,
+                timer: 4000,
                 timerProgressBar: true,
                 didOpen: (toast) => {
                   toast.addEventListener("mouseenter", Swal.stopTimer);
@@ -261,7 +322,7 @@ $tri_last_uri = $this->uri->segment($last-2);
                 toast: true,
                 position: "top-end",
                 showConfirmButton: false,
-                timer: 5000,
+                timer: 4000,
                 timerProgressBar: true,
                 didOpen: (toast) => {
                   toast.addEventListener("mouseenter", Swal.stopTimer);

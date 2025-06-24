@@ -17,7 +17,8 @@ class Login extends CI_Controller {
 	public function index()
 	{
 		$data["title"] = "Login";
-		$this->load->view('v_login', $data);
+		$this->load->view('v_stylish_login', $data);
+		// $this->load->view('v_login', $data);
 	}
 	// public function scrap_kecamatan()
 	// {
@@ -41,13 +42,51 @@ class Login extends CI_Controller {
 	// 	}
 	
 	// }
+	private function verify_recaptcha($token) {
+		$url = 'https://www.google.com/recaptcha/api/siteverify';
+		$data = array(
+			'secret' => $this->config->item("recaptcha_secret_key"),
+			'response' => $token
+		);
+
+		$options = array(
+			'http' => array(
+				'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+				'method'  => 'POST',
+				'content' => http_build_query($data)
+			)
+		);
+		$context  = stream_context_create($options);
+		$result = file_get_contents($url, false, $context);
+
+		if ($result === FALSE) {
+			// $this->session->set_flashdata('error', 'Failed to connect to reCAPTCHA API.');
+			return ['success' => false, 'error-codes' => ['connection-error']];
+		}
+
+		return json_decode($result, true);
+	}
 	public function send_auth()
 	{
 		if($this->input->post("hushbot") <> "67b279476cef18ce0be52bb1f7945d46bdd9e0ba1698a893caf470e7409ad62f"){
 			header("HTTP/1.0 404 Not Found");die;
 		}
+		$recaptcha_token = $this->input->post('g-recaptcha-response');
+
+		$recaptcha_response = $this->verify_recaptcha($recaptcha_token);
+		$recaptcha_verification = $recaptcha_response['success'] == true && $recaptcha_response['score'] >= $this->config->item("recaptcha_score_threshold") && $recaptcha_response['action'] == 'login';
+		// if($recaptcha_verification == false){
+		// 	log_message('error', 'reCAPTCHA verification failed: ' . json_encode($recaptcha_response));
+		// 	$error_message = 'reCAPTCHA verification failed. Please try again.';
+		// 	if (isset($recaptcha_response['error-codes'])) {
+		// 		$error_message .= ' Error codes: ' . implode(', ', $recaptcha_response['error-codes']);
+		// 	}
+		// 	$this->session->set_flashdata('error', $error_message);
+		// 	redirect(site_url(''));
+		// }
 		$this->form_validation->set_rules('username', 'Username', 'trim|required');
 		$this->form_validation->set_rules('password', 'Password', 'trim|required');
+		$this->form_validation->set_rules('tahun', 'Tahun', 'trim|required');
 		if ($this->form_validation->run() == FALSE) {
 			$this->session->set_flashdata('error', "Invalid combination of username and password!");
 			redirect(site_url(''));
@@ -59,7 +98,7 @@ class Login extends CI_Controller {
 				if (password_verify($this->input->post("password"), $data->password)) {
 					$datasess = array(
 						'whs_logged' => TRUE,
-						'whs_tahun' => 2024,
+						'whs_tahun' => $this->input->post("tahun"),
 						'whs_id_user' => $data->id,
 						'whs_username' => $data->username,
 						'whs_role' => $data->role,
@@ -82,6 +121,12 @@ class Login extends CI_Controller {
 					}else{
 						$datasess["whs_nama_provinsi"] = "";
 						$datasess["whs_nama_kabupaten"] = "";
+					}
+					$data_tahun = $this->mdb->getrowdatawhere("m_tahun_pengisian", null, ["updated_date" => "desc"]);
+					if($data_tahun){
+						$datasess["whs_tahun_pengisian"] = $data_tahun->tahun;
+					}else{
+						$datasess["whs_tahun_pengisian"] = "";
 					}
 					$this->session->set_userdata($datasess);
 					if($data->role=="provinsi"||$data->role=="kabupaten"){

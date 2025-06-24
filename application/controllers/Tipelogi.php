@@ -16,12 +16,12 @@ class Tipelogi extends CI_Controller {
 	}
 	public function load_provinsi()
 	{
-		$data = $this->mdb->getdatawhere("vw_provinsi_informasi");
+		$data = $this->mdb->getdatawhere("vw_provinsi_informasi", ["tahun" => $_GET['tahun']], [["tahun" => null]]);
 		echo json_encode($data);
 	}
 	public function load_kabupaten()
 	{
-		$data = $this->mdb->getdatawhere("vw_kabupaten_informasi", ["kode_provinsi" => $_GET['id']]);
+		$data = $this->mdb->getdatawhere("vw_kabupaten_informasi", ["kode_provinsi" => $_GET['id'], "tahun" => $_GET['tahun']], [["kode_provinsi" => $_GET['id'],"tahun" => null]]);
 		$dataProv = $this->mdb->getrowdatawhere("m_provinsi", ["kode_provinsi" => $_GET['id']]);
 		echo json_encode(["data_kabupaten" => $data, "data_provinsi" => $dataProv]);
 	}
@@ -33,21 +33,24 @@ class Tipelogi extends CI_Controller {
 			if($_GET['perangkat'] == "sekda" || $_GET['perangkat'] == "sekdprd" || $_GET['perangkat'] == "inspektorat"){
 				$data = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov'], "tipe_variable" => $_GET['perangkat']]);
 			}elseif($_GET['perangkat'] == "badan" || $_GET['perangkat'] == "dinas"){
+				$badan = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $_GET['subperangkat'], "tahun" => $_GET['tahun']]);
 				$data = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov'], "tipe_variable" => $_GET['perangkat'], "id_badan" => $_GET['subperangkat']]);
 			}
+			$dataUmum = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov']]);
 		}else{
 			if($_GET['perangkat'] == "sekda" || $_GET['perangkat'] == "sekdprd" || $_GET['perangkat'] == "inspektorat"){
 				$data = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov'], "kode_kabupaten" => $_GET["id_kab"], "tipe_variable" => $_GET['perangkat']]);
 			}elseif($_GET['perangkat'] == "badan" || $_GET['perangkat'] == "dinas"){
-				$badan = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $_GET['subperangkat']]);
+				$badan = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $_GET['subperangkat'], "tahun" => $_GET['tahun']]);
 				$data = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov'], "kode_kabupaten" => $_GET["id_kab"], "tipe_variable" => $_GET['perangkat'], "id_badan" => $_GET['subperangkat']]);
 			}else{
 				$data = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov'], "kode_kabupaten" => $_GET["id_kab"], "tipe_variable" => $_GET['perangkat'], "id_badan" => $_GET['subperangkat']]);
 			}
+			$dataUmum = $this->mdb->getrowdatawhere("vw_skor_perkalian", ["tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun'], "kode_provinsi" => $_GET['id_prov'], "kode_kabupaten" => $_GET["id_kab"]]);
 		}
 		$skor = "Belum Mengisi!";
-		if($data){
-			$skorVal = (($data->variable_teknis * 0.8)+($data->variable_umum * 0.2)) * $data->perkalian;
+		if($data && $dataUmum){
+			$skorVal = (($data->skor * 0.8)+($dataUmum->skor * 0.2)) * $dataUmum->perkalian;
 			$skor = number_format($skorVal, 1);
 			$kategori = "";
 			if($skorVal <= 300){
@@ -88,7 +91,7 @@ class Tipelogi extends CI_Controller {
 				$output[$x]["selected"] = false;
 			}
 		}else{
-			$data = $this->mdb->getdatawhere("m_badan", ["tipe_badan" => $_GET['type'], "tipe_daerah" => $_GET['daerah']]);
+			$data = $this->mdb->getdatawhere("m_badan", ["tipe_badan" => $_GET['type'], "tipe_daerah" => $_GET['daerah'], "tahun" => $_GET['tahun']]);
 			$output = [];
 			$x=0;
 			$output[$x] = [];

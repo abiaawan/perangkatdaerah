@@ -24,14 +24,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <link rel="stylesheet" href="<?= base_url("assets") ?>/extensions/leaflet/leaflet.css" />
     <script src="<?= base_url("assets") ?>/extensions/leaflet/leaflet.js"></script>
     <link rel="stylesheet" href="<?= base_url("assets") ?>/extensions/choices.js/public/assets/styles/choices.css">
-    <link rel="stylesheet" href="<?= base_url("assets") ?>/custom.css">
+    <link rel="stylesheet" href="<?= base_url("assets") ?>/custom.css?v=3">
 </head>
 
 <body>
     <script src="<?= base_url("assets") ?>/static/js/initTheme.js"></script>
     <div id="app">
         <div id="sidebar">
-            <div class="sidebar-wrapper active">
+            <div class="sidebar-wrapper sidebar-overlay active">
                 <div class="sidebar-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="logo">
@@ -75,7 +75,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <li class="sidebar-item active">
             <a href="<?= base_url("") ?>" class='sidebar-link'>
                 <i class="icon-mid bi bi-box-arrow-left me-2"></i>
-                <span>Keluar</span>
+                <span>Kembali</span>
             </a>
         </li>
     </ul>

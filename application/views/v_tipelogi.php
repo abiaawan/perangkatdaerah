@@ -21,7 +21,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <section class="section">
         <div class="card">
             <div class="card-body m-0 p-1">
-                <div class="row" id="filter-sheet">
+                <div class="row pt-2 px-2" id="filter-sheet">
                     <div class="col-md-4 mb-0">
                         <h6>Pilih Provinsi</h6>
                         <div class="form-group">
@@ -38,16 +38,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <div class="form-group">
                             <select class="choices form-select" id="tahun">
                                 <?php for ($i=2024; $i <= date("Y")-1; $i++) { ?>
-                                    <option value="<?= $i ?>" selected><?= $i ?></option>
+                                    <option value="<?= $i ?>" <?= $i==date("Y")-1 ? "selected" : "" ?>><?= $i ?></option>
                                 <?php } ?>
                             </select>
                         </div>
                     </div>
                 </div>
-                <div class="mb-3 d-none" id="back-sheet">
+                <div class="mb-3 d-none px-2 pt-2" id="back-sheet">
                     <button class="btn btn-secondary" id="back-btn"><i class="bi bi-arrow-counterclockwise"></i> Kembali</button>
                 </div>
-                <div class="row">
+                <div class="row px-2">
                     <div class="col-md-12" id="map-sheet">
                         <div id="map" class="leaflet-map"></div>
                     </div>
@@ -109,7 +109,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 </div>
                             </div>
                             <div class="d-flex justify-content-start mt-1">
-                                <button class="btn btn-primary" id="cari-skor"><i class="bi bi-send"></i> Submit</button>
+                                <button class="btn btn-primary" id="cari-skor"><i class="bi bi-eye-fill"></i> Tampilkan</button>
                             </div>
                             <div class="border rounded mt-4 p-3 d-none" id="skor-sheet">
                                 <div class="row">
@@ -221,12 +221,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         });
         $(document).on('click', '#cari-skor', function(e) {
             if($("#perangkat").val() == ""){
-                alert("Pilih Nomenklatur Perangkat Daerah terlebih dahulu!");
+                alert("Lengkapi Nomenklatur Perangkat Daerah terlebih dahulu!");
                 return;
             }
             if($("#perangkat").val() == "dinas" || $("#subperangkat").val() == "badan" || $("#subperangkat").val() == "kecamatan"){
                 if($("#subperangkat").val() == ""){
-                    alert("Pilih Nomenklatur Perangkat Daerah terlebih dahulu!");
+                    alert("Lengkapi Nomenklatur Perangkat Daerah terlebih dahulu!");
                     return;
                 }
             }
@@ -345,14 +345,47 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         {
             $.ajax({
                 type: "GET",
-                url: "<?= base_url("tipelogi/load_provinsi") ?>",
+                url: "<?= base_url("tipelogi/load_provinsi") ?>/"+$("#tahun").val(),
                 dataType: "json",
-                processData: false,
+                data: {
+                    tahun: $("#tahun").val()
+                },
                 contentType: false,
                 success: function(data)
                 {
-                    data.forEach(function (item, index, arr) {
-                        L.marker([item.latitude, item.longitude]).bindTooltip(item.nama_provinsi,{permanent: true, direction: 'top',offset:L.point(-14, -5)}).bindPopup('<table class="table table-bordered border text-black"><tbody><tr><td>Provinsi</td><td>'+item.nama_provinsi+'</td></tr><tr><td>Informasi Kelembagaan</td><td></td></tr><tr><td colspan="2">Informasi Demografi</td></tr><tr><td>Jumlah Penduduk</td><td>'+(item.penduduk != null ? item.penduduk : "-")+' jiwa</td></tr><tr><td>Kepadatan</td><td>'+(item.kepadatan != null ? item.kepadatan : "-")+' jiwa/km²</td></tr><tr><td colspan="2">Informasi Fisik - Demografis</td></tr><tr><td>Luas Wilayah</td><td>'+(item.luas != null ? item.luas : "-")+' km²</td></tr><tr><td colspan="2" class="text-center"><button class="btn btn-primary btn-sm btn-detail" data-id_provinsi="'+item.kode_provinsi+'" data-latitude="'+item.latitude+'" data-longitude="'+item.longitude+'" data-penduduk="'+(item.penduduk != null ? item.penduduk : "-")+'" data-kepadatan="'+(item.kepadatan != null ? item.kepadatan : "-")+'" data-luas="'+(item.luas != null ? item.luas : "-")+'" data-apbd="'+(item.apbd != null ? item.apbd : "-")+'" data-nama="'+item.nama_provinsi+'" data-daerah="provinsi"><i class="bi bi-eye-fill"></i> Lihat Detail</button></td></tr></tbody></table>').addTo(province);
+                    data.forEach(function(item) {
+                        var marker = L.marker([item.latitude, item.longitude]);
+
+                        var popupContent = '<table class="table table-bordered border text-black"><tbody><tr><td>Provinsi</td><td>'+item.nama_provinsi+'</td></tr><tr><td>Jumlah Penduduk</td><td>'+(item.penduduk != null ? item.penduduk : "-")+' jiwa</td></tr><tr><td>Kepadatan</td><td>'+(item.kepadatan != null ? item.kepadatan : "-")+' jiwa/km²</td></tr><tr><td>Luas Wilayah</td><td>'+(item.luas != null ? item.luas : "-")+' km²</td></tr><tr><td>APBD</td><td>'+(item.apbd != null ? formatRupiah(parseInt(item.apbd), 'Rp. ') : "-")+'</td></tr><tr><td colspan="2" class="text-center"><button class="btn btn-primary btn-sm btn-detail" data-id_provinsi="'+item.kode_provinsi+'" data-latitude="'+item.latitude+'" data-longitude="'+item.longitude+'" data-penduduk="'+(item.penduduk != null ? item.penduduk : "-")+'" data-kepadatan="'+(item.kepadatan != null ? item.kepadatan : "-")+'" data-luas="'+(item.luas != null ? item.luas : "-")+'" data-apbd="'+(item.apbd != null ? item.apbd : "-")+'" data-nama="'+item.nama_provinsi+'" data-daerah="provinsi"><i class="bi bi-eye-fill"></i> Lihat Detail</button></td></tr></tbody></table>';
+
+                        marker.bindTooltip(item.nama_provinsi, {
+                            permanent: true,
+                            direction: 'top',
+                            offset: L.point(-14, -5)
+                        }).bindPopup(popupContent).addTo(province);
+
+                        marker.on('add', function() {
+                            var currentMarker = this;
+                            setTimeout(function() {
+                                var tooltip = currentMarker.getTooltip();
+                                if (tooltip) {
+                                    var tooltipElement = tooltip.getElement();
+                                    if (tooltipElement) {
+                                        tooltipElement.removeEventListener('click', function(e) {
+                                            e.stopPropagation();
+                                            currentMarker.openPopup();
+                                        });
+                                        tooltipElement.addEventListener('click', function(e) {
+                                            e.stopPropagation();
+                                            currentMarker.openPopup();
+                                        });
+                                        tooltipElement.style.cursor = 'pointer';
+                                    } else {
+                                    }
+                                } else {
+                                }
+                            }, 100);
+                        });
                     });
                     province.addTo(map);
                 }
@@ -364,14 +397,46 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 type: "GET",
                 url: "<?= base_url("tipelogi/load_kabupaten") ?>",
                 data: {
-                    id: id
+                    id: id,
+                    tahun: $("#tahun").val()
                 },
                 dataType: "json",
                 contentType: false,
                 success: function(data)
                 {
-                    data.data_kabupaten.forEach(function (item, index, arr) {
-                        L.marker([item.latitude, item.longitude]).bindTooltip(item.nama_kabupaten,{permanent: true, direction: 'top',offset:L.point(-14, -5)}).bindPopup('<table class="table table-bordered border text-black"><tbody><tr><td>Kabupaten/Kota</td><td>'+item.nama_kabupaten+'</td></tr><tr><td>Informasi Kelembagaan</td><td></td></tr><tr><td colspan="2">Informasi Demografi</td></tr><tr><td>Jumlah Penduduk</td><td>'+(item.penduduk != null ? item.penduduk : "-")+' jiwa</td></tr><tr><td>Kepadatan</td><td>'+(item.kepadatan != null ? item.kepadatan : "-")+' jiwa/km²</td></tr><tr><td colspan="2">Informasi Fisik - Demografis</td></tr><tr><td>Luas Wilayah</td><td>'+(item.luas != null ? item.luas : "-")+' km²</td></tr><tr><td colspan="2" class="text-center"><button class="btn btn-primary btn-sm btn-detail" data-id_provinsi="'+item.kode_provinsi+'" data-id_kabupaten="'+item.kode_kabupaten+'" data-latitude="'+item.latitude+'" data-longitude="'+item.longitude+'" data-penduduk="'+(item.penduduk != null ? item.penduduk : "-")+'" data-kepadatan="'+(item.kepadatan != null ? item.kepadatan : "-")+'" data-luas="'+(item.luas != null ? item.luas : "-")+'" data-apbd="'+(item.apbd != null ? item.apbd : "-")+'" data-nama="'+item.nama_kabupaten+'" data-daerah="kabupaten"><i class="bi bi-eye-fill"></i> Lihat Detail</button></td></tr></tbody></table>').addTo(state);
+                    data.data_kabupaten.forEach(function(item) {
+                        var marker = L.marker([item.latitude, item.longitude]);
+
+                        var popupContent = '<table class="table table-bordered border text-black"><tbody><tr><td>Kabupaten/Kota</td><td>' + item.nama_kabupaten + '</td></tr><tr><td>Jumlah Penduduk</td><td>' + (item.penduduk != null ? item.penduduk : "-") + ' jiwa</td></tr><tr><td>Kepadatan</td><td>' + (item.kepadatan != null ? item.kepadatan : "-") + ' jiwa/km²</td></tr><tr><td>Luas Wilayah</td><td>' + (item.luas != null ? item.luas : "-") + ' km²</td></tr><tr><td>APBD</td><td>'+(item.apbd != null ? formatRupiah(parseInt(item.apbd), 'Rp. ') : "-")+'</td></tr><tr><td colspan="2" class="text-center"><button class="btn btn-primary btn-sm btn-detail" data-id_provinsi="' + item.kode_provinsi + '" data-id_kabupaten="' + item.kode_kabupaten + '" data-latitude="' + item.latitude + '" data-longitude="' + item.longitude + '" data-penduduk="' + (item.penduduk != null ? item.penduduk : "-") + '" data-kepadatan="' + (item.kepadatan != null ? item.kepadatan : "-") + '" data-luas="' + (item.luas != null ? item.luas : "-") + '" data-apbd="' + (item.apbd != null ? item.apbd : "-") + '" data-nama="' + item.nama_kabupaten + '" data-daerah="kabupaten"><i class="bi bi-eye-fill"></i> Lihat Detail</button></td></tr></tbody></table>';
+
+                        marker.bindTooltip(item.nama_kabupaten, {
+                            permanent: true,
+                            direction: 'top',
+                            offset: L.point(-14, -5)
+                        }).bindPopup(popupContent).addTo(state);
+
+                        marker.on('add', function() {
+                            var currentMarker = this;
+                            setTimeout(function() {
+                                var tooltip = currentMarker.getTooltip();
+                                if (tooltip) {
+                                    var tooltipElement = tooltip.getElement();
+                                    if (tooltipElement) {
+                                        tooltipElement.removeEventListener('click', function(e) {
+                                            e.stopPropagation();
+                                            currentMarker.openPopup();
+                                        });
+                                        tooltipElement.addEventListener('click', function(e) {
+                                            e.stopPropagation();
+                                            currentMarker.openPopup();
+                                        });
+                                        tooltipElement.style.cursor = 'pointer';
+                                    } else {
+                                    }
+                                } else {
+                                }
+                            }, 100);
+                        });
                     });
                     map.setView([data.data_provinsi.latitude, data.data_provinsi.longitude], 8, {
                         "animate": true,

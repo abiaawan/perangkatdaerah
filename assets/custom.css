@@ -64,3 +64,63 @@
 .modal .choices{
 	width: calc(100% - 41px) !important;
 }
+.sidebar-overlay{
+	z-index: 2000 !important;
+}
+#color-legend {
+	margin-top: 15px;
+	text-align: center;
+	font-size: 13px;
+}
+#color-legend div {
+	display: inline-flex;
+	align-items: center;
+	margin: 0 10px;
+}
+#color-legend .legend-color-box {
+	width: 15px;
+	height: 15px;
+	border-radius: 3px;
+	margin-right: 8px;
+	border: 1px solid rgba(0,0,0,0.2);
+}
+.extra-height .choices__inner {
+	height: 120px !important;
+}
+.leaflet-tooltip{
+	pointer-events: auto !important;
+	z-index: 1999 !important;
+	padding: 2px !important;
+}
+.leaflet-tooltip-top{
+	margin-left: -0.5px !important;
+	margin-top: -7px !important;
+}
+#pie-parent{
+	width: 100%;
+	min-height: 400px; 
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: flex-start;
+}
+.pie-col{
+	height: 300px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.pie-col-extra{
+	height: 500px !important;
+}
+.modal-content-custom {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.modal-body-iframe {
+	height: calc(100vh - 150px); /* Adjust height based on header/footer if present */
+	width: 100%;
+	border: none;
+}

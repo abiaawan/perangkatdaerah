@@ -56,3 +56,6 @@ $route['dashboard-analytic'] = "dashboard";
 $route['informasi-data-umum'] = "informasi";
 $route['variable/sekretariat-daerah'] = "variable/sekda";
 $route['variable/sekretariat-dprd'] = "variable/sekdprd";
+$route['hasil-skor-tipelogi'] = "hasil";
+$route['buka-pengisian-data'] = "kunci";
+$route['tahun-pengisian-data'] = "kunci/tahun";

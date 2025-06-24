@@ -1,5 +1,8 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+$config['recaptcha_site_key']   = '6LdtE14rAAAAALBHCXKRLaR0HZmGjTgmIqX6NkUC';
+$config['recaptcha_secret_key'] = '6LdtE14rAAAAAIStMpqk5jkFaXThdsTJHXIW1Mqn';
+$config['recaptcha_score_threshold'] = 0.5;
 
 /*
 |--------------------------------------------------------------------------

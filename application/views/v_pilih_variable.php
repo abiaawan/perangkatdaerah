@@ -21,19 +21,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <?php 
     function find_status($status, $tipeSoal)
     {
-        if($status){
-            foreach ($status as $k => $v) {
-                if($v->tipe_soal == $tipeSoal){
-                    if($v->status == "draft"){
-                        return '<button type="submit" class="btn btn-primary me-1 mb-1"><i class="bi bi-pencil-fill"></i> Klik disini untuk mengubah variable '.$tipeSoal.'</button>';
-                    }elseif($v->status == "submit"){
-                        return '<button type="submit" class="btn btn-success me-1 mb-1"><i class="bi bi-eye"></i> Klik disini untuk melihat variable '.$tipeSoal.'</button>';
-                    }
-                }
+        if($status[$tipeSoal]){
+            if($status[$tipeSoal]->status == "draft"){
+                return '<button type="submit" class="btn btn-primary me-1 mb-1"><i class="bi bi-pencil-fill"></i> Klik disini untuk mengubah variable '.$tipeSoal.'</button>';
+            }elseif($status[$tipeSoal]->status == "submit"){
+                return '<button type="submit" class="btn btn-success me-1 mb-1"><i class="bi bi-eye"></i> Klik disini untuk melihat variable '.$tipeSoal.'</button>';
             }
         }
         return '<button type="submit" class="btn btn-primary me-1 mb-1"><i class="bi bi-pencil-square"></i> Klik disini untuk mengisi variable '.$tipeSoal.'</button>';
-
+    }
+    function find_submitted($status, $tipeSoal)
+    {
+        if($status[$tipeSoal]){
+            if($status[$tipeSoal]->status == "draft"){
+                return false;
+            }elseif($status[$tipeSoal]->status == "submit"){
+                return true;
+            }
+        }
+        return false;
     }
     ?>
     <section class="section">
@@ -69,7 +75,39 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 </div>
             </div>
         </div>
-    </section>
+        <?php if(find_submitted($data_status, "umum") && find_submitted($data_status, "teknis")){ ?>
+            <div class="col-12 d-flex px-2">
+                <span>
+                    <span class="h6 me-3">Skor Data Tipelogi <?= $subtitle ?></span>
+                    <span class="text-nowrap">
+                        <button type="button" id="dl-skor-btn" data-var="<?= $tipe_variable ?>" data-badan="" class="btn btn-success mb-1"><i class="bi bi-download"></i> Unduh</button>
+                        <button type="button" id="view-skor-btn" data-var="<?= $tipe_variable ?>" data-badan="" class="btn btn-primary me-1 mb-1"><i class="bi bi-eye-fill"></i> View Skor</button>
+                    </span>
+                </span>
+
+            </div>
+        <?php } ?>
+        <div class="modal fade" id="modal-total-skor" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-centered modal-dialog-scrollable"
+            role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">View Skor
+                    </h5>
+                </div>
+                <div class="modal-body" id="total-skor-container">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary ms-1" data-bs-dismiss="modal">
+                        <i class="bx bx-check d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">OK</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 </div>
 
 <script type="text/javascript">
@@ -84,5 +122,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
               e.preventDefault();
           }
       });
+        $(document).on('click', '#view-skor-btn', function(e) {
+            var upElem = $(this);
+            var formData = new FormData();
+            formData.append('tipe_var', upElem.data("var"));
+            formData.append('id_badan', upElem.data("badan"));
+            $.ajax({
+                type: "POST",
+                url: "<?= base_url("variable/view_skor") ?>",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data)
+                {
+                    $("#total-skor-container").html(data);
+                    $('#modal-total-skor').modal('show');
+                }
+            });
+            
+        });
+        $(document).on('click', '#dl-skor-btn', function(e){
+            var link = document.createElement("a");
+            link.download = "";
+            link.href = "<?= base_url("variable/download_variable_all/") ?>?tipe_var="+$(this).data("var")+"&id_badan="+$(this).data("badan");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            delete link;
+        });
     });
 </script>

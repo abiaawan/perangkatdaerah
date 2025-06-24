@@ -23,19 +23,19 @@
                 <div id="auth-left">
                     <div class="auth-logo text-center">
                         <a href="index.html"><img src="<?= base_url("assets") ?>/static/images/logo/logo.png" alt="Logo"></a>
-                        <p>Perangkat Daerah</p>
+                        <p class="fs-5 fw-semibold">Perangkat Daerah</p>
                     </div>
                     <p class="auth-subtitle mb-5"></p>
                     <form action="<?= base_url("login/send_auth") ?>" method="POST">
                         <div class="form-group position-relative has-icon-left mb-4">
                           <input type="hidden" name="hushbot" value="1">
-                          <input type="text" name="username" class="form-control form-control-xl" placeholder="Username" required>
+                          <input type="text" name="username" class="form-control form-control" placeholder="Username" required>
                           <div class="form-control-icon">
                             <i class="bi bi-person"></i>
                         </div>
                     </div>
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="password" name="password" class="form-control form-control-xl" placeholder="Password" required>
+                        <input type="password" name="password" class="form-control form-control" placeholder="Password" required>
                         <div class="form-control-icon">
                             <i class="bi bi-shield-lock"></i>
                         </div>

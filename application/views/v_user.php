@@ -24,9 +24,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 <div class="col-12 d-flex justify-content-end mt-3" id="submit-container">
                     <button type="button" id="add-btn" class="btn btn-primary me-1 mb-1"><i class="bi bi-plus-lg"></i> Add User</button>
                 </div>
-                <table class="table table-striped" id="table1">
+                <table id="table1" class="table table-striped table-bordered w-100">
                     <thead>
                         <tr>
+                            <th>No</th>
                             <th>Username</th>
                             <th>Role</th>
                             <th>Provinsi</th>
@@ -37,6 +38,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     <tbody>
                         <?php foreach ($users as $k => $v) { ?>
                             <tr>
+                                <td class="text-center"></td>
                                 <td><?= $v->username ?></td>
                                 <td><?= $v->role ?></td>
                                 <td><?= $v->nama_provinsi ?></td>
@@ -92,6 +94,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-lock h5"></i></span>
                                         <input type="password" class="form-control" placeholder="Password" id="password" name="password" value="" required>
+                                        <span class="input-group-text" id="togglePassword">
+                                            <i class="bi bi-eye-slash-fill h6" style="margin-bottom: 2px"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -118,6 +123,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <option value="admin">Admin</option>
                                             <option value="provinsi">Provinsi</option>
                                             <option value="kabupaten">Kabupaten</option>
+                                            <?php if($this->session->userdata("whs_role") == "superadmin"){ ?>
+                                                <option value="superadmin">Superadmin</option>
+                                            <?php } ?>
                                         </select>
                                     </div>
                                 </div>
@@ -196,13 +204,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     $( document ).ready(function() {
         $('form').on('submit', function(e) {
             if (!$(this).data('submitted')) {
-              $(this).data('submitted', true);
-              $(this).find("button").addClass('disabled');
-          }
-          else {
-              e.preventDefault();
-          }
-      });
+                $(this).data('submitted', true);
+                $(this).find("button").addClass('disabled');
+            }
+            else {
+                e.preventDefault();
+            }
+        });
+        $('#togglePassword').on('click', function() {
+            const passwordField = $('#password');
+            const passwordFieldType = passwordField.attr('type');
+            if (passwordFieldType === 'password') {
+                passwordField.attr('type', 'text');
+                $(this).find('i').removeClass('bi-eye-slash-fill').addClass('bi-eye-fill');
+            } else {
+                passwordField.attr('type', 'password');
+                $(this).find('i').removeClass('bi-eye-fill').addClass('bi-eye-slash-fill');
+            }
+        });
 
         const prov_select = $('#provinsi')[0];
         const kab_select = $('#kabupaten')[0];
@@ -223,13 +242,39 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             itemSelectText: "",
             shouldSort: false,
         });
-        $("#table1").DataTable();
+        let jquery_datatable = $("#table1").DataTable({
+            "responsive": true,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "scrollX": true,
+            "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+                $('td:eq(0)', nRow).html(iDisplayIndexFull +1+".");
+            }
+        })
+
+        const setTableColor = () => {
+            document.querySelectorAll('.dataTables_paginate .pagination').forEach(dt => {
+                dt.classList.add('pagination-primary')
+            })
+        }
+        setTableColor()
+        jquery_datatable.on('draw', setTableColor)
         $(document).on('click', '#add-btn', function(e) {
             $("#mode").val("add");
             $('#password').prop("required", true);
             $('#username').prop("disabled", false);
             $("#password").attr("placeholder", "Password");
             $("#id").val("");
+            $("#name").val("");
+            $("#username").val("");
+            $("#email").val("");
+            $("#nip").val("");
+            $("#jabatan").val("");
+            choices3.setChoiceByValue("");
+            choices2.setChoiceByValue("");
+            choices.setChoiceByValue("");
             $('#modal-add').modal('show');
         });
         $(document).on('click', '.btn-delete', function(e) {

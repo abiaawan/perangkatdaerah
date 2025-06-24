@@ -20,7 +20,11 @@ class User extends CI_Controller {
 	public function index()
 	{
 		$data["title"] = "User";
-		$data["users"] = $this->mdb->getdatawhere("vw_user_nama_daerah", ["role !=" => "superadmin"]);
+		$where = [];
+		if($this->session->userdata('whs_role')<>"superadmin"){
+			$where = ["role !=" => "superadmin"];
+		}
+		$data["users"] = $this->mdb->getdatawhere("vw_user_nama_daerah", $where);
 		$data["provinsi"] = $this->mdb->getdatawhere("m_provinsi");
 		$data["content"] = $this->load->view('v_user', $data, true);
 		$this->load->view('v_header', $data);
@@ -66,9 +70,9 @@ class User extends CI_Controller {
 		$data["role"] = $this->input->post("role");
 		$data["kode_kabupaten"] = $this->input->post("kabupaten");
 		$data["kode_provinsi"] = $this->input->post("provinsi");
-		$data["username"] = $this->input->post("username");
 
 		if($this->input->post("mode") == "add"){
+			$data["username"] = $this->input->post("username");
 			$this->form_validation->set_rules('username', 'Username', 'trim|required|is_unique[m_user.username]');
 			if ($this->form_validation->run() == FALSE) {
 				$this->session->set_flashdata('error', "Username telah terdaftar!");
@@ -84,6 +88,9 @@ class User extends CI_Controller {
 			redirect(site_url('user'));
 		}else{
 			if($this->input->post("password") <> ""){
+				$options = [
+					'cost' => 13,
+				];
 				$data["password"] = password_hash($this->input->post("password"), PASSWORD_BCRYPT, $options);
 			}
 			$this->mdb->putdatawhere("m_user", ["id" => $this->input->post("id")], $data);

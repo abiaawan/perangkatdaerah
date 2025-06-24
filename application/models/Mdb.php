@@ -35,7 +35,7 @@ class Mdb extends CI_Model {
 		$q = $this->db->get();
 		return $q->row();
 	}
-	function getdatawhereselect($table, $select, $where=null)
+	function getdatawhereselect($table, $select, $where=null, $orwhere=null, $order=null, $wherein=null)
 	{
 		$this->db->select($select);
 		$this->db->from($table);
@@ -48,6 +48,23 @@ class Mdb extends CI_Model {
 			$this->db->group_start();
 			$this->db->where(["removed" => 0]);
 			$this->db->group_end();
+		}
+		if($wherein){
+			$this->db->group_start();
+			$this->db->where_in($wherein[0],$wherein[1]);
+			$this->db->group_end();
+		}
+		if($orwhere != null){
+			foreach ($orwhere as $k => $v){
+				$this->db->or_group_start();
+				$this->db->where($v);
+				$this->db->group_end();
+			}
+		}
+		if($order != null){
+			foreach ($order as $k => $v) {
+				$this->db->order_by($k, $v);
+			}
 		}
 		$q = $this->db->get();
 		return $q->result();

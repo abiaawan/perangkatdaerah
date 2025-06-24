@@ -56,7 +56,7 @@ if($this->session->userdata('whs_role') == "provinsi"){
                                     <div class="my-1">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-people h5"></i></span>
-                                            <input type="number" class="form-control" placeholder="Jumlah Penduduk" id="jml-penduduk" name="penduduk" value="<?= $form["penduduk"] ?>" required>
+                                            <input type="text" class="form-control input" placeholder="Jumlah Penduduk" id="jml-penduduk" name="penduduk" value="<?= $form["penduduk"] ?>" readonly>
                                             <span class="input-group-text" id="basic-addon2">jiwa</span>
                                         </div>
                                     </div>
@@ -69,7 +69,7 @@ if($this->session->userdata('whs_role') == "provinsi"){
                                     <div class="my-1">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-map h5"></i></span>
-                                            <input type="number" class="form-control" placeholder="Luas Wilayah" id="luas" name="luas"  value="<?= $form["luas"] ?>" required>
+                                            <input type="text" class="form-control input" placeholder="Luas Wilayah" id="luas" name="luas"  value="<?= $form["luas"] ?>" readonly>
                                             <span class="input-group-text" id="basic-addon2">km²</span>
                                         </div>
                                     </div>
@@ -82,7 +82,7 @@ if($this->session->userdata('whs_role') == "provinsi"){
                                     <div class="my-1">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-people h5"></i></span>
-                                            <input type="text" class="form-control" placeholder="kepadatan" id="kepadatan" name="kepadatan"  value="<?= $form["kepadatan"] ?>" disabled>
+                                            <input type="text" class="form-control input" placeholder="kepadatan" id="kepadatan" name="kepadatan"  value="<?= $form["kepadatan"] ?>" readonly>
                                             <span class="input-group-text" id="basic-addon2">jiwa/km²</span>
                                         </div>
                                     </div>
@@ -95,14 +95,13 @@ if($this->session->userdata('whs_role') == "provinsi"){
                                     <div class="my-1">
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-cash h5"></i></span>
-                                            <input type="hidden" name="apbd" value="<?= $form["apbd"] ?>">
-                                            <input type="text" class="form-control rupiah" placeholder="APBD" id="apbd"  value="" required>
-                                            <span class="input-group-text" id="basic-addon2">,00</span>
+                                            <input type="text" class="form-control input" placeholder="APBD" name="apbd" value="<?= $form["apbd"] ?>" readonly>
+                                            <span class="input-group-text" id="basic-addon2">rupiah</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-12 d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-primary me-1 mb-1">Submit</button>
+                                    <!-- <button type="submit" class="btn btn-primary me-1 mb-1">Submit</button> -->
                                 </div>
                             </div>
                         </div>
@@ -117,38 +116,30 @@ if($this->session->userdata('whs_role') == "provinsi"){
     $( document ).ready(function() {
         $('form').on('submit', function(e) {
             if (!$(this).data('submitted')) {
-              $(this).data('submitted', true);
-              $(this).find("button").addClass('disabled');
-          }
-          else {
-              e.preventDefault();
-          }
-      });
-        $("#apbd").val(formatRupiah($("input[name=apbd]").val(), 'Rp. '));
-        $(document).on('keyup', '.rupiah', function(){
-          $(this).val(formatRupiah($(this).val(), 'Rp. '));
-          $("input[name=apbd]").val(formatRupiah($(this).val(), 'Rp. ').replaceAll(".","").replaceAll(" ","").replaceAll("Rp",""));
-      });
-
-        $(document).on('keyup', '#luas, #jml-penduduk', function(){
-            if($("#jml-penduduk").val() > 0 && $("#luas").val() > 0){
-                $("#kepadatan").val(Math.round(($("#jml-penduduk").val()/$("#luas").val())*10)/10);
+                $(this).data('submitted', true);
+                $(this).find("button").addClass('disabled');
             }
-            
+            else {
+                e.preventDefault();
+            }
+        });
+        $(".input").val(function(){
+            return $(this).val() != "" ? formatRupiah($(this).val(), '') : '';
         });
         function formatRupiah(angka, prefix)
         {
-          var number_string = angka.replace(/[^,\d]/g, '').toString(),
-          split    = number_string.split(','),
-          sisa     = split[0].length % 3,
-          rupiah     = split[0].substr(0, sisa),
-          ribuan     = split[0].substr(sisa).match(/\d{3}/gi);
-          if (ribuan) {
-            separator = sisa ? '.' : '';
-            rupiah += separator + ribuan.join('.');
+            var number_string = angka.replace(/[^,\d]/g, '').toString(),
+            split    = number_string.split(','),
+            sisa     = split[0].length % 3,
+            rupiah     = split[0].substr(0, sisa),
+            ribuan     = split[0].substr(sisa).match(/\d{3}/gi);
+            if (ribuan) {
+                separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+            // rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+            rupiah = split[1] != undefined ? rupiah : rupiah;
+            return prefix == undefined ? rupiah : (rupiah ? '' + rupiah : '');
         }
-        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-        return prefix == undefined ? rupiah : (rupiah ? 'Rp. ' + rupiah : '');
-    }
-});
+    });
 </script>
