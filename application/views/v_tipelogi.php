@@ -116,6 +116,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <div class="col-md-6">
                                         <p id="title-skor"></p>
                                         <h5 id="total-skor">Skor: </h5>
+                                        <div id="button-skor"></div>
                                     </div>
                                     <div class="col-md-6">
                                         <h6 class="m-0">Keterangan:</h6>
@@ -135,7 +136,44 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
             </div>
         </div>
-    </section>
+        <div class="modal fade" id="modal-total-skor" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-bs-focus="false">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-centered modal-dialog-scrollable"
+            role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Lihat Detail
+                    </h5>
+                </div>
+                <div class="modal-body" id="total-skor-container">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary ms-1" data-bs-dismiss="modal">
+                        <i class="bx bx-check d-block d-sm-none"></i>
+                        <span class="d-none d-sm-block">OK</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-xl-custom">
+            <div class="modal-content modal-content-custom">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 d-flex flex-grow-1">
+                    <iframe id="pdfViewer" class="modal-body-iframe"></iframe>
+                </div>
+                <div class="modal-footer p-0 d-flex justify-content-end">
+                    <a href="" id="dn-lampiran-btn" class="btn btn-primary btn-sm" download><i class="bi bi-download"></i> Download</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
 </div>
 <script type="text/javascript">
     $( document ).ready(function() {
@@ -256,7 +294,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         title = $("#perangkat"+" option:selected").text()+" "+ucwords(strtolower($("#subperangkat option:selected").text()))+" "+namaDaerah;
                     }
                     $("#title-skor").text(title);
-                    $("#total-skor").text("Skor: "+data);
+                    $("#total-skor").text("Skor: "+data[0]);
+                    $("#button-skor").html(data[1]);
                 }
             });
         });
@@ -448,6 +487,66 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
             });
         }
+
+        $(document).on('click', '.view-skor-btn', function(e) {
+            var upElem = $(this);
+            var formData = new FormData();
+            formData.append('tipe_var', $(this).data("var"));
+            formData.append('id_badan', $(this).data("badan"));
+            formData.append('role', $(this).data("role"));
+            formData.append('tahun', $(this).data("tahun"));
+            formData.append('provinsi', $(this).data("prov"));
+            formData.append('kabupaten', $(this).data("kab"));
+            $.ajax({
+                type: "POST",
+                url: "<?= base_url("tipelogi/view_skor") ?>",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data)
+                {
+                    if(data == "404"){
+                        alert("Soal belum dibuat!");
+                    }else if(data == "204"){
+                        alert("User belum submit data!");
+                    }else if(data == "100"){
+                        $("#skor-title").text($("#badan option:selected").text());
+                        $('#modal-skor').modal('show');
+                    }else{
+                        $("#total-skor-container").html(data);
+                        $('#modal-total-skor').modal('show');
+                    }
+                    
+                }
+            });
+        });
+        const pdfModal = $('#pdfModal');
+        const pdfViewerIframe = $('#pdfViewer');
+        $(document).on( 'click','.view-btn', function(e) {
+            e.preventDefault();
+            const pdfUrl = "<?= base_url("public/") ?>"+$(this).data('daerah')+"/"+$(this).data('kodedaerah')+"/"+$(this).data('file');
+            if (pdfUrl) {
+                $("#dn-lampiran-btn").attr("href", pdfUrl);
+                $("#pdfModalLabel").text('PDF Viewer');
+                const viewerJsPath = '<?= base_url("assets/extensions/viewerjs/index.html") ?>';
+                pdfViewerIframe.attr('src', `${viewerJsPath}#${pdfUrl}`);
+                pdfModal.modal('show');
+            } else {
+                console.error('No PDF URL found for this item.');
+            }
+        });
+        $(document).on( 'click','.download-skor-btn', function(e) {
+            var link = document.createElement("a");
+            link.download = "";
+            link.href = "<?= base_url("tipelogi/download_pdf/") ?>?tipe_var="+$(this).data("var")+"&id_badan="+$(this).data("badan")+"&role="+$(this).data("role")+"&tahun="+$(this).data("tahun")+"&provinsi="+$(this).data("prov")+"&kabupaten="+$(this).data("kab");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            delete link;
+        });
+        pdfModal.on('hidden.bs.modal', function () {
+            pdfViewerIframe.attr('src', '');
+        });
         function ucwords (str) {
             return (str + '').replace(/^([a-z])|\s+([a-z])/g, function ($1) {
                 return $1.toUpperCase();

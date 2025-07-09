@@ -17,6 +17,14 @@ class Login extends CI_Controller {
 	public function index()
 	{
 		$data["title"] = "Login";
+		$data["redirect"] = "";
+		if(isset($_GET["r"])){
+			if(str_contains(urldecode($_GET["r"]), base_url(''))){
+				$data["redirect"] = preg_replace('/[^a-zA-Z0-9\/\:%-=?]/', '', urlencode($_GET["r"]));
+			}else{
+				redirect(site_url(''));
+			}
+		}
 		$this->load->view('v_stylish_login', $data);
 		// $this->load->view('v_login', $data);
 	}
@@ -106,6 +114,7 @@ class Login extends CI_Controller {
 						'whs_email' => $data->email,
 						'whs_nip' => $data->nip,
 						'whs_jabatan' => $data->jabatan,
+						'whs_id_kl' => $data->id_kl,
 						'whs_kode_kabupaten' => $data->kode_kabupaten,
 						'whs_kode_provinsi' => $data->kode_provinsi
 					);
@@ -118,6 +127,11 @@ class Login extends CI_Controller {
 						$dataGeo2 = $this->mdb->getrowdatawhere("m_kabupaten", ["kode_kabupaten" => $data->kode_kabupaten]);
 						$datasess["whs_nama_provinsi"] = $dataGeo->nama_provinsi;
 						$datasess["whs_nama_kabupaten"] = $dataGeo2->nama_kabupaten;
+					}elseif($data->role=="kl"){
+						$datasess["whs_nama_provinsi"] = "";
+						$datasess["whs_nama_kabupaten"] = "";
+						$dataKl = $this->mdb->getrowdatawhere("m_kl", ["id_kl" => $data->id_kl]);
+						$datasess["whs_nama_kl"] = $dataKl->nama_kl;
 					}else{
 						$datasess["whs_nama_provinsi"] = "";
 						$datasess["whs_nama_kabupaten"] = "";
@@ -129,12 +143,21 @@ class Login extends CI_Controller {
 						$datasess["whs_tahun_pengisian"] = "";
 					}
 					$this->session->set_userdata($datasess);
-					if($data->role=="provinsi"||$data->role=="kabupaten"){
-						redirect(site_url('informasi-data-umum'));
+					if($this->input->post("redirect")){
+						if(str_contains(urldecode($this->input->post("redirect")), base_url(''))){
+							redirect(preg_replace('/[^a-zA-Z0-9\/\:%-=?]/', '', urldecode($this->input->post("redirect"))));
+						}else{
+							redirect(site_url(''));
+						}
 					}else{
-						redirect(site_url('dashboard-analytic'));
+						if($data->role=="provinsi"||$data->role=="kabupaten"){
+							redirect(site_url('informasi-data-umum'));
+						}elseif($data->role=="kl"){
+							redirect(site_url('approval'));
+						}else{
+							redirect(site_url('dashboard-analytic'));
+						}
 					}
-					
 				}else{
 					$this->session->set_flashdata('error', "Invalid combination of username and password!");
 					redirect(site_url(''));

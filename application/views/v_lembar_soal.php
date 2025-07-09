@@ -37,6 +37,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <h5>Upload Lampiran</h5>
                                 </div>
                             </div>
+                            <input type="hidden" name="title" value="<?= ($tipe_var == "sekda" || $tipe_var == "sekdprd" || $tipe_var == "inspektorat") ? $subtitle : $subtitle . ": ". $subsubtitle ?>">
                             <input type="hidden" name="tipe_var" value="<?= $tipe_var ?>">
                             <input type="hidden" name="tipe_soal" value="<?= $tipe_soal ?>">
                             <input type="hidden" name="id_badan" value="<?= $id_badan ?>">
@@ -337,17 +338,17 @@ $('.btn-submit').on('click', function(e) {
     if(submitButtonValue == "draft"){
         $('.answer').prop("required", false); 
         $('.true-answer').prop("required", false); 
+        $('.upload-file').prop("required", false); 
     }else{
         $('.answer').prop("required", true);
         $('.true-answer').prop("required", true); 
+        $('.upload-file').prop("required", true); 
         if (!form[0].checkValidity()) {
             isValid = false;
         }
     }
     if (!isValid) {
         form[0].reportValidity();
-        $('.answer').prop("required", false);
-        $('.true-answer').prop("required", false); 
         return;
     }
     var formData = form.serialize();

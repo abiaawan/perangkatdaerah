@@ -197,6 +197,14 @@ $tri_last_uri = $this->uri->segment($last-2);
                 </ul>
             </li>
         <?php } ?>
+        <?php if($this->session->userdata('whs_role')=="superadmin"||$this->session->userdata('whs_role')=="admin"||$this->session->userdata('whs_role')=="provinsi"||$this->session->userdata('whs_role')=="kl"){ ?>
+            <li class="sidebar-item <?= $last_uri == "approval" ? "active" : "" ?>">
+                <a href="<?= base_url("approval") ?>" class='sidebar-link'>
+                    <i class="bi bi-check-lg"></i>
+                    <span>Approval</span>
+                </a>
+            </li>
+        <?php } ?>
     </ul>
 </div>
 </div>
@@ -228,6 +236,8 @@ $tri_last_uri = $this->uri->segment($last-2);
                                     $secName = ucwords(strtolower("Provinsi ". $this->session->userdata('whs_nama_provinsi')));
                                 }elseif($this->session->userdata('whs_role') == "kabupaten"){
                                     $secName = ucwords(strtolower($this->session->userdata('whs_nama_kabupaten')));
+                                }elseif($this->session->userdata('whs_role') == "kl"){
+                                    $secName = ucwords(strtolower($this->session->userdata('whs_nama_kl')));
                                 }else{
                                     $secName = ucwords($this->session->userdata('whs_role'));
                                 }
@@ -261,13 +271,13 @@ $tri_last_uri = $this->uri->segment($last-2);
             <div class="float-start">
                 <!-- <p>2025 &copy; APPCOMPANY</p> -->
             </div>
-        <!-- <div class="float-end">
-            <p>Crafted with <span class="text-danger"><i class="bi bi-heart-fill icon-mid"></i></span>
-                by <a href="https://saugi.me">Saugi</a></p>
+            <div class="float-end">
+                <!-- <p>Crafted with <span class="text-danger"><i class="bi bi-heart-fill icon-mid"></i></span> -->
+                    <!-- by <a href="https://saugi.me">Saugi</a></p> -->
+                </div>
             </div>
-        </div> -->
-    </footer>
-</div>
+        </footer>
+    </div>
 </div>
 <script src="<?= base_url("assets") ?>/static/js/components/dark.js"></script>
 <script src="<?= base_url("assets") ?>/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>

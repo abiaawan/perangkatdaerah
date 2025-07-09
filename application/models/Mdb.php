@@ -329,4 +329,176 @@ class Mdb extends CI_Model {
 		// echo $this->db->last_query();die;
 		return $Q->result();
 	}
+	function send_approval_request($data)
+	{
+		if(!empty($data[0])){
+			try {
+				$mail = new PHPMailer(true);
+				$mail->isSMTP();
+				$mail->Host       = 'mail.perangkat-daerah.com';
+				$mail->SMTPAuth   = true;   
+				$mail->Username   = 'admin@perangkat-daerah.com';
+				$mail->Password   = 'Qk5DGPTUUE79cV3';
+				$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+				$mail->Port       = 465; 
+				$mail->setFrom('admin@perangkat-daerah.com', 'Perangkat Daerah');
+
+				foreach ($data[0] as $k => $v) {
+					$mail->addAddress($k, $v);
+				}
+
+				$mail->isHTML(true);
+				$mail->Subject = 'Permintaan Approval '.$data[2].' #'.date("YmdHis");
+				$imgUrl = base_url("assets/static/images/logo/logo.png");
+			// $url = base_url("approval");
+				$url = $data[3];
+				$mail->Body = <<<SMF
+				<!doctype html>
+				<html>
+				<body>
+				<div style='background-color:#132b51;color:#132b51;font-family:Avenir, "Avenir Next LT Pro", Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'>
+				<table align="center" width="100%" style="border-radius: 20px;margin:0 auto;max-width:600px;background-color:#FFFFFF" role="presentation" cellspacing="0" cellpadding="0" border="0">
+				<tbody>
+				<tr style="width:100%">
+				<td>
+				<div style="padding:24px 24px 24px 24px;text-align:center"><img alt="Logo Kementerian Dalam Negeri" src="{$imgUrl}" height="32" style="height:72px;outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block;max-width:100%" /></div>
+				<h2 style="font-weight:bold;text-align:left;margin:0;font-size:24px;padding:16px 24px 0px 24px"> Permintaan Approval $data[2]</h2>
+				<div style="font-size:16px;font-weight:normal;text-align:left;padding:16px 24px 16px 24px"> User $data[1] baru saja melakukan submit data perangkat daerah $data[2] dan membutuhkan approval sebagai syarat keabsahan data</div>
+
+				<div style="padding:8px 24px 8px 24px">
+
+				<div style="text-align:center;padding:16px 24px 16px 24px"><a href="{$url}" style="color:#FFFFFF;font-size:16px;font-weight:bold;background-color:#132b51;border-radius:4px;display:inline-block;padding:16px 32px;text-decoration:none" target="_blank"><span></span><span>Detail</span><span></span></a></div>
+				<div style="font-size:14px;font-weight:normal;text-align:right;padding:46px 24px 16px 24px;color:#888"> Jangan membalas surel otomatis ini. </div>
+				</td>
+				</tr>
+				</tbody>
+				</table>
+				</div>
+				</body>
+				</html>
+				SMF;
+				if (!$mail->send()) {
+				} else {
+				}
+				$mail->smtpClose();
+			} catch (Exception $e) {
+
+			}
+		}
+
+	}
+	function approve_approval_request($data)
+	{
+		if(!empty($data[0])){
+			try {
+				$mail = new PHPMailer(true);
+				$mail->isSMTP();
+				$mail->Host       = 'mail.perangkat-daerah.com';
+				$mail->SMTPAuth   = true;   
+				$mail->Username   = 'admin@perangkat-daerah.com';
+				$mail->Password   = 'Qk5DGPTUUE79cV3';
+				$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+				$mail->Port       = 465; 
+				$mail->setFrom('admin@perangkat-daerah.com', 'Perangkat Daerah');
+
+				foreach ($data[0] as $k => $v) {
+					$mail->addAddress($k, $v);
+				}
+
+				$mail->isHTML(true);
+				$mail->Subject = 'Approved - Permintaan Approval '.$data[2].' #'.date("YmdHis");
+				$imgUrl = base_url("assets/static/images/logo/logo.png");
+				$url = $data[3];
+				$mail->Body = <<<SMF
+				<!doctype html>
+				<html>
+				<body>
+				<div style='background-color:#132b51;color:#132b51;font-family:Avenir, "Avenir Next LT Pro", Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'>
+				<table align="center" width="100%" style="border-radius: 20px;margin:0 auto;max-width:600px;background-color:#FFFFFF" role="presentation" cellspacing="0" cellpadding="0" border="0">
+				<tbody>
+				<tr style="width:100%">
+				<td>
+				<div style="padding:24px 24px 24px 24px;text-align:center"><img alt="Logo Kementerian Dalam Negeri" src="{$imgUrl}" height="32" style="height:72px;outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block;max-width:100%" /></div>
+				<h2 style="font-weight:bold;text-align:left;margin:0;font-size:24px;padding:16px 24px 0px 24px"> Approved - Permintaan Approval $data[2]</h2>
+				<div style="font-size:16px;font-weight:normal;text-align:left;padding:16px 24px 16px 24px"> User $data[1] baru saja meng-approve data perangkat daerah $data[2]</div>
+
+				<div style="padding:8px 24px 8px 24px">
+
+				<div style="text-align:center;padding:16px 24px 16px 24px"><a href="{$url}" style="color:#FFFFFF;font-size:16px;font-weight:bold;background-color:#132b51;border-radius:4px;display:inline-block;padding:16px 32px;text-decoration:none" target="_blank"><span></span><span>Detail</span><span></span></a></div>
+				<div style="font-size:14px;font-weight:normal;text-align:right;padding:46px 24px 16px 24px;color:#888"> Jangan membalas surel otomatis ini. </div>
+				</td>
+				</tr>
+				</tbody>
+				</table>
+				</div>
+				</body>
+				</html>
+				SMF;
+				if (!$mail->send()) {
+				} else {
+				}
+				$mail->smtpClose();
+			} catch (Exception $e) {
+
+			}
+		}
+	}
+	function reject_approval_request($data)
+	{
+		if(!empty($data[0])){
+			try {
+				$mail = new PHPMailer(true);
+				$mail->isSMTP();
+				$mail->Host       = 'mail.perangkat-daerah.com';
+				$mail->SMTPAuth   = true;   
+				$mail->Username   = 'admin@perangkat-daerah.com';
+				$mail->Password   = 'Qk5DGPTUUE79cV3';
+				$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+				$mail->Port       = 465; 
+				$mail->setFrom('admin@perangkat-daerah.com', 'Perangkat Daerah');
+
+				foreach ($data[0] as $k => $v) {
+					$mail->addAddress($k, $v);
+				}
+
+				$mail->isHTML(true);
+				$mail->Subject = 'Rejected - Permintaan Approval '.$data[2].' #'.date("YmdHis");
+				$imgUrl = base_url("assets/static/images/logo/logo.png");
+				$url = $data[4];
+				$mail->Body = <<<SMF
+				<!doctype html>
+				<html>
+				<body>
+				<div style='background-color:#132b51;color:#132b51;font-family:Avenir, "Avenir Next LT Pro", Montserrat, Corbel, "URW Gothic", source-sans-pro, sans-serif;font-size:16px;font-weight:400;letter-spacing:0.15008px;line-height:1.5;margin:0;padding:32px 0;min-height:100%;width:100%'>
+				<table align="center" width="100%" style="border-radius: 20px;margin:0 auto;max-width:600px;background-color:#FFFFFF" role="presentation" cellspacing="0" cellpadding="0" border="0">
+				<tbody>
+				<tr style="width:100%">
+				<td>
+				<div style="padding:24px 24px 24px 24px;text-align:center"><img alt="Logo Kementerian Dalam Negeri" src="{$imgUrl}" height="32" style="height:72px;outline:none;border:none;text-decoration:none;vertical-align:middle;display:inline-block;max-width:100%" /></div>
+				<h2 style="font-weight:bold;text-align:left;margin:0;font-size:24px;padding:16px 24px 0px 24px"> Rejected - Permintaan Approval $data[2]</h2>
+				<div style="font-size:16px;font-weight:normal;text-align:left;padding:16px 24px 16px 24px"> User $data[1] baru saja me-reject data perangkat daerah $data[2] dengan alasan: $data[3]</div>
+
+				<div style="padding:8px 24px 8px 24px">
+
+				<div style="text-align:center;padding:16px 24px 16px 24px"><a href="{$url}" style="color:#FFFFFF;font-size:16px;font-weight:bold;background-color:#132b51;border-radius:4px;display:inline-block;padding:16px 32px;text-decoration:none" target="_blank"><span></span><span>Detail</span><span></span></a></div>
+				<div style="font-size:14px;font-weight:normal;text-align:right;padding:46px 24px 16px 24px;color:#888"> Jangan membalas surel otomatis ini. </div>
+				</td>
+				</tr>
+				</tbody>
+				</table>
+				</div>
+				</body>
+				</html>
+				SMF;
+				if (!$mail->send()) {
+				} else {
+				}
+				$mail->smtpClose();
+			} catch (Exception $e) {
+
+			}
+		}
+
+
+	}
 } 

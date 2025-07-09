@@ -31,6 +31,7 @@ class Informasi extends CI_Controller {
 			die;
 		}
 		$search = $this->mdb->getrowdatawhere("tb_informasi_tematik", ["tipe_daerah" => $data["tipe_daerah"], "kode_provinsi" => $this->session->userdata('whs_kode_provinsi'), "kode_kabupaten" => $this->session->userdata('whs_kode_kabupaten'), "tahun" => $this->session->userdata('whs_tahun')]);
+		
 		if($search){
 			$data["form"]["penduduk"] = $search->penduduk;
 			$data["form"]["kepadatan"] = $search->kepadatan;

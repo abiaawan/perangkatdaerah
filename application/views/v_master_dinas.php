@@ -172,7 +172,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 </div>
                             </div>
                         </div>
-
                         <div class="col-md-4">
                             <label class="label mt-2" for="tahun">Tahun</label>
                         </div>
@@ -209,6 +208,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         const penilaian_select = $('#tipe_penilaian')[0];
         const daerah_select = $('#tipe_daerah')[0];
         const year_select = $('#year')[0];
+        const kl_select = $('#kl')[0];
         var choices = new Choices(penilaian_select, {
             removeItemButton: true,
             itemSelectText: "",
@@ -220,6 +220,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             shouldSort: false,
         });
         var choices3 = new Choices(year_select, {
+            removeItemButton: true,
+            itemSelectText: "",
+        });
+        var choices4 = new Choices(kl_select, {
             removeItemButton: true,
             itemSelectText: "",
         });

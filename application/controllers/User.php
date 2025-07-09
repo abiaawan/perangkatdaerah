@@ -7,7 +7,7 @@ class User extends CI_Controller {
 		parent::__construct();
 		date_default_timezone_set('Asia/Jakarta');
 		if($this->session->userdata('whs_logged')==true){
-			if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
+			if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin" || $this->session->userdata('whs_role')=="kl"){
 
 			}else{
 				redirect(site_url('informasi-data-umum'));
@@ -26,6 +26,7 @@ class User extends CI_Controller {
 		}
 		$data["users"] = $this->mdb->getdatawhere("vw_user_nama_daerah", $where);
 		$data["provinsi"] = $this->mdb->getdatawhere("m_provinsi");
+		$data["kl"] = $this->mdb->getdatawhere("m_kl");
 		$data["content"] = $this->load->view('v_user', $data, true);
 		$this->load->view('v_header', $data);
 	}
@@ -48,7 +49,7 @@ class User extends CI_Controller {
 	}
 	public function load_user()
 	{
-		$data = $this->mdb->getrowdatawhereselect("m_user", "id, name, username, email, role, kode_provinsi, kode_kabupaten, nip, jabatan", ["id" => $_GET['id']]);
+		$data = $this->mdb->getrowdatawhereselect("m_user", "id, name, username, email, role, kode_provinsi, kode_kabupaten, nip, jabatan, id_kl", ["id" => $_GET['id']]);
 		echo json_encode($data);
 	}
 	public function delete($id)
@@ -70,6 +71,7 @@ class User extends CI_Controller {
 		$data["role"] = $this->input->post("role");
 		$data["kode_kabupaten"] = $this->input->post("kabupaten");
 		$data["kode_provinsi"] = $this->input->post("provinsi");
+		$data["id_kl"] = $this->input->post("kl");
 
 		if($this->input->post("mode") == "add"){
 			$data["username"] = $this->input->post("username");

@@ -24,6 +24,7 @@
         </div>
         <form action="<?= base_url("login/send_auth") ?>" method="POST">
             <input type="hidden" name="hushbot" value="1">
+            <input type="hidden" name="redirect" value="<?= $redirect ?>">
             <div class="mb-3">
                 <label for="username" class="form-label"><i class="bi bi-person-fill"></i> Username</label>
                 <input type="text" class="form-control shadow-none" name="username" id="username" placeholder="Username" required>
@@ -43,8 +44,6 @@
                     <?php for ($i=date("Y")-1; $i <= 2024; $i++) { ?>
                         <option value="<?= $i ?>" <?= $i==date("Y")-1 ? "selected" : "" ?>><?= $i ?></option>
                     <?php } ?>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
                 </select>
             </div>
             <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">

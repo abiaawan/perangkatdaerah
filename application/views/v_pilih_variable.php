@@ -23,12 +23,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     {
         if($status[$tipeSoal]){
             if($status[$tipeSoal]->status == "draft"){
-                return '<button type="submit" class="btn btn-primary me-1 mb-1"><i class="bi bi-pencil-fill"></i> Klik disini untuk mengubah variable '.$tipeSoal.'</button>';
+                return '<button type="submit" class="btn btn-primary mb-1"><i class="bi bi-pencil-fill"></i> Klik disini untuk mengubah variable '.$tipeSoal.'</button>';
             }elseif($status[$tipeSoal]->status == "submit"){
-                return '<button type="submit" class="btn btn-success me-1 mb-1"><i class="bi bi-eye"></i> Klik disini untuk melihat variable '.$tipeSoal.'</button>';
+                return '<button type="submit" class="btn btn-success mb-1"><i class="bi bi-eye"></i> Klik disini untuk melihat variable '.$tipeSoal.'</button>';
             }
         }
-        return '<button type="submit" class="btn btn-primary me-1 mb-1"><i class="bi bi-pencil-square"></i> Klik disini untuk mengisi variable '.$tipeSoal.'</button>';
+        return '<button type="submit" class="btn btn-primary mb-1"><i class="bi bi-pencil-square"></i> Klik disini untuk mengisi variable '.$tipeSoal.'</button>';
     }
     function find_submitted($status, $tipeSoal)
     {
@@ -36,10 +36,63 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             if($status[$tipeSoal]->status == "draft"){
                 return false;
             }elseif($status[$tipeSoal]->status == "submit"){
-                return true;
+                $statusArr = [$status[$tipeSoal]->approval_kementerian,$status[$tipeSoal]->approval_kl,$status[$tipeSoal]->approval_provinsi];
+                if(!in_array(0, $statusArr) && !in_array(2, $statusArr) && !in_array(3, $statusArr)){
+                    return true;
+                }
             }
         }
         return false;
+    }
+    function find_status_approval($status, $tipeSoal)
+    {
+        if($status[$tipeSoal]){
+            return status_text([$status[$tipeSoal]->approval_kementerian,$status[$tipeSoal]->approval_kl,$status[$tipeSoal]->approval_provinsi],[$status[$tipeSoal]->comment_kementerian,$status[$tipeSoal]->comment_kl,$status[$tipeSoal]->comment_provinsi]);
+        }else{
+            return status_text([0,0,0],["","",""]);
+        }
+        return status_text([0,0,0],["","",""]);
+    }
+    function status_text($arr, $comm)
+    {
+        $approver = "";
+        $html = "";
+        $badge = "";
+        foreach ($arr as $k => $v) {
+            if($v <> 4){
+                $rejected = "";
+                $rejected2 = "";
+                $rejected3 = "";
+                if($k == 0){
+                    $approver = "Kemendagri";
+                }elseif($k == 1){
+                    $approver = "K/L Terkait";
+                }elseif($k == 2){
+                    $approver = "Provinsi";
+                }
+
+                if($v == 0){
+                    $txt = "Belum Submit";
+                    $badge = "secondary";
+                    return '<div class="ms-1 me-0 mt-0 mb-1 p-0"><span class="badge bg-'.$badge.'">'.$txt.'</span></div>';
+                }elseif($v == 1){
+                    $txt = "Approved by";
+                    $badge = "success";
+                }elseif($v == 2){
+                    $rejected = " rejected-span";
+                    $rejected2 = ' data-comment="'.htmlspecialchars($comm[$k]).'"';
+                    $rejected3 = '<i class="bi bi-info-circle"></i> ';
+                    $txt = "Rejected by";
+                    $badge = "danger";
+                    return '<div class="ms-1 me-0 mt-0 mb-1 p-0'.$rejected.'"'.$rejected2.'><span class="badge bg-'.$badge.'">'.$rejected3.$txt.' '.$approver.'</span></div>';
+                }elseif($v == 3){
+                    $txt = "Menunggu Approval";
+                    $badge = "info";
+                }
+                $html .= '<div class="ms-1 me-0 mt-0 mb-1 p-0"><span class="badge bg-'.$badge.'">'.$txt.' '.$approver.'</span></div>';
+            }
+        }
+        return $html;
     }
     ?>
     <section class="section">
@@ -56,6 +109,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <div class="col-12 d-flex justify-content-end">
                                     <?= find_status($data_status, "umum") ?>
                                 </div>
+                                <div class="col-12 d-flex justify-content-end">
+                                    <?= find_status_approval($data_status, "umum") ?>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -68,6 +124,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <input type="hidden" name="tipe_variable" value="<?= $tipe_variable ?>">
                                 <div class="col-12 d-flex justify-content-end">
                                     <?= find_status($data_status, "teknis") ?>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end">
+                                    <?= find_status_approval($data_status, "teknis") ?>
                                 </div>
                             </div>
                         </div>
@@ -140,6 +199,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 }
             });
             
+        });
+        $(document).on( 'click','.rejected-span', function(e) {
+            swal.fire({
+                title: "Alasan Penolakan",
+                text: $(this).data("comment"),
+            });
         });
         $(document).on('click', '#dl-skor-btn', function(e){
             var link = document.createElement("a");

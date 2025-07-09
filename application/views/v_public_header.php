@@ -100,13 +100,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             <div class="float-start">
                 <!-- <p>2025 &copy; APPCOMPANY</p> -->
             </div>
-        <!-- <div class="float-end">
-            <p>Crafted with <span class="text-danger"><i class="bi bi-heart-fill icon-mid"></i></span>
-                by <a href="https://saugi.me">Saugi</a></p>
+            <div class="float-end">
+                <!-- <p>Crafted with <span class="text-danger"><i class="bi bi-heart-fill icon-mid"></i></span> -->
+                    <!-- by <a href="https://saugi.me">Saugi</a></p> -->
+                </div>
             </div>
-        </div> -->
-    </footer>
-</div>
+        </footer>
+    </div>
 </div>
 <script src="<?= base_url("assets") ?>/static/js/components/dark.js"></script>
 <script src="<?= base_url("assets") ?>/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>

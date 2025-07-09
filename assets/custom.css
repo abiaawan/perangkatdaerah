@@ -65,7 +65,7 @@
 	width: calc(100% - 41px) !important;
 }
 .sidebar-overlay{
-	z-index: 2000 !important;
+	z-index: 1001 !important;
 }
 #color-legend {
 	margin-top: 15px;
@@ -123,4 +123,7 @@
 	height: calc(100vh - 150px); /* Adjust height based on header/footer if present */
 	width: 100%;
 	border: none;
+}
+.rejected-span{
+	cursor: pointer;
 }

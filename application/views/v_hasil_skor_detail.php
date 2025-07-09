@@ -189,6 +189,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 });
             }
         });
+        var table = $("table").DataTable();
         $(document).on('click', '#view-table-btn', function(e) {
             if(check_validation() == false)
             {
@@ -210,6 +211,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 success: function(data)
                 {
                     $("#table-container").html(data);
+                    
+                    table.destroy();
+                    table = $("table").DataTable({
+                        "responsive": true,
+                        "paging": false,
+                        "searching": true,
+                        "info": false,
+                        "scrollX": true,
+                        "pageLength": 1000,
+                        "bPaginate": false,
+                        "ordering": false,
+                        "bLengthChange": false,
+                    });
                 }
             });
         });

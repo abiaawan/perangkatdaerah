@@ -15,14 +15,26 @@ class Variable extends CI_Controller {
 			// 	redirect(site_url('dashboard'));
 			// }
 		}else{
-			$this->session->set_flashdata('error', "Your session has expired!");
-			redirect(site_url(''));
+			$last = $this->uri->total_segments();
+			$sec_last_uri = $this->uri->segment($last-1);
+
+			if($sec_last_uri == "variable"){
+				$this->session->set_flashdata('error', "Please log in to continue!");
+				$actual_link = (empty($_SERVER['HTTPS']) ? 'http' : 'https') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+				redirect(site_url('')."?r=".urlencode($actual_link));
+			}else{
+				$this->session->set_flashdata('error', "Your session has expired!");
+				redirect(site_url(''));	
+			}
+			
 		}
 	}
 	public function index()
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}else{
 			redirect(site_url('informasi-data-umum'));
 		}
@@ -32,6 +44,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 
 		$data_tahun = $this->mdb->getrowdatawhere("m_tahun_pengisian", null, ["updated_date" => "desc"]);
@@ -173,6 +187,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data_tahun = $this->mdb->getrowdatawhere("m_tahun_pengisian", null, ["updated_date" => "desc"]);
 		if($data_tahun){
@@ -270,6 +286,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data_tahun = $this->mdb->getrowdatawhere("m_tahun_pengisian", null, ["updated_date" => "desc"]);
 		if($data_tahun){
@@ -393,6 +411,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data_tahun = $this->mdb->getrowdatawhere("m_tahun_pengisian", null, ["updated_date" => "desc"]);
 		if($data_tahun){
@@ -504,6 +524,40 @@ class Variable extends CI_Controller {
 			}else{
 				$data["status"] = "submit";
 				$where["tipe_soal"] = $this->input->post("tipe_soal");
+				$data["comment_kementerian"] = "";
+				$data["comment_kl"] = "";
+				$data["comment_provinsi"] = "";
+				$data["approval_kementerian"] = 3;
+				if($this->session->userdata('whs_role') == "provinsi"){
+					if($this->input->post("tipe_soal") == "teknis"){
+						if($tipeVar == "sekda" || $tipeVar == "sekdprd" || $tipeVar == "inspektorat"){
+							$data["approval_kl"] = 3;
+							$data["approval_provinsi"] = 4;
+						}elseif($tipeVar == "dinas" || $tipeVar == "badan"){
+							$data["approval_kl"] = 3;
+							$data["approval_provinsi"] = 4;
+						}
+					}else{
+						$data["approval_kl"] = 4;
+						$data["approval_provinsi"] = 4;
+					}
+				}elseif($this->session->userdata('whs_role') == "kabupaten"){
+					if($this->input->post("tipe_soal") == "teknis"){
+						if($tipeVar == "sekda" || $tipeVar == "sekdprd" || $tipeVar == "inspektorat"){
+							$data["approval_kl"] = 3;
+							$data["approval_provinsi"] = 3;
+						}elseif($tipeVar == "dinas" || $tipeVar == "badan"){
+							$data["approval_kl"] = 3;
+							$data["approval_provinsi"] = 3;
+						}elseif($tipeVar == "kecamatan"){
+							$data["approval_kl"] = 3;
+							$data["approval_provinsi"] = 3;
+						}
+					}else{
+						$data["approval_kl"] = 4;
+						$data["approval_provinsi"] = 3;
+					}
+				}
 			}
 			unset($where["id_soal"]);
 			unset($data["id_soal"]);
@@ -517,7 +571,6 @@ class Variable extends CI_Controller {
 			}
 			if($this->input->post("submit_type") == "submit"){
 				unset($data["status"]);
-				$perkalian = $this->pengkalian_wilayah($this->session->userdata('whs_kode_provinsi'), $this->session->userdata('whs_kode_kabupaten'));
 				$nilai = 0;
 				$searchNilai = $this->mdb->getdatawhere("m_soal", null, null, null, ["id_soal", $searchSoal]);
 				$outputNilai = [];
@@ -528,91 +581,79 @@ class Variable extends CI_Controller {
 					$outputNilai[$v->id_soal]["indikator"] = $v->soal;
 					$outputNilai[$v->id_soal]["skor"] = $skor;
 				}
-				$data["skor"] = $nilai;
 
-				$data["id_kategori_perkalian"] = $perkalian->id_kategori_perkalian;
-				$search = $this->mdb->getrowdatawhere("tb_skor", $where);
-				if(!$search){
-					$this->mdb->postdata("tb_skor", $data);
+				$sendTo = [];
+				$admins = $this->mdb->getdatawhere("m_user", ["role" => "admin"]);
+				foreach ($admins as $k => $v) {
+					if($v->email){
+						$sendTo[$v->email] = $v->name;
+					}
+				}
+				if($data["approval_kl"] == 3){
+					if(isset($where["kode_kecamatan"])){
+						unset($where["kode_kecamatan"]);
+					}
+					unset($where["kode_kabupaten"]);
+					unset($where["kode_provinsi"]);
+					$klBadan = $this->mdb->getdatawhere("tb_kl_badan", $where);
+					$klBadanArr = [];
+					foreach ($klBadan as $k => $v) {
+						$klBadanArr[] = $v->id_kl;
+					}
+					$kls = $this->mdb->getdatawhere("m_user", null, null, null, ["id_kl", $klBadanArr]);
+					foreach ($kls as $k => $v) {
+						if($v->email){
+							$sendTo[$v->email] = $v->name;
+						}
+					}
+				}
+				if($data["approval_provinsi"] == 3){
+					$provs = $this->mdb->getdatawhere("m_user", ["kode_provinsi" => $this->session->userdata('whs_kode_provinsi')]);
+					foreach ($provs as $k => $v) {
+						if($v->email){
+							$sendTo[$v->email] = $v->name;
+						}
+					}
+				}
+				$secName = "";
+				if($this->session->userdata('whs_role') == "provinsi"){
+					$secName = ucwords(strtolower("Provinsi ". $this->session->userdata('whs_nama_provinsi')));
+				}elseif($this->session->userdata('whs_role') == "kabupaten"){
+					$secName = ucwords(strtolower($this->session->userdata('whs_nama_kabupaten')));
 				}else{
-					$this->mdb->putdatawhere("tb_skor", $where, $data);
+					$secName = ucwords($this->session->userdata('whs_role'));
 				}
-
-				if($this->input->post("tipe_soal") == "umum"){
-					if (isset($soalJawabValue[0]) && isset($soalJawabValue[1]) && $soalJawabValue[1] != 0) {
-						$kepadatan = $soalJawabValue[0] / $soalJawabValue[1];
-					} else {
-						$kepadatan = "";
-					}
-					$dataInformasi = array(
-						"penduduk" => $soalJawabValue[0] ?? "",
-						"kepadatan" => $kepadatan,
-						"luas" => $soalJawabValue[1] ?? "",
-						"apbd" => $soalJawabValue[2] ?? "",
-						"kode_provinsi" => $this->session->userdata('whs_kode_provinsi'),
-						"kode_kabupaten" => $this->session->userdata('whs_kode_kabupaten'),
-						"tipe_daerah" => $this->session->userdata('whs_role'),
-						"tahun" => $this->session->userdata('whs_tahun'),
-						"updated_date" => date("Y-m-d H:i:s")
-					);
-					$whereInformasi = ["tipe_daerah" => $data["tipe_daerah"], "kode_provinsi" => $this->session->userdata('whs_kode_provinsi'), "kode_kabupaten" => $this->session->userdata('whs_kode_kabupaten'), "tahun" => $this->session->userdata('whs_tahun')];
-					$search2 = $this->mdb->getrowdatawhere("tb_informasi_tematik", $whereInformasi);
-					if($search2){
-						$this->mdb->putdatawhere("tb_informasi_tematik", $whereInformasi, $dataInformasi);
-					}else{
-						$this->mdb->postdata("tb_informasi_tematik", $dataInformasi);
-					}
+				if($this->input->post("tipe_soal") == "teknis"){
+					$title = preg_replace('/[^a-zA-Z :]/', '', $this->input->post("title"))." Variable Teknis";	
+				}else{
+					$title = $secName . " Variable Umum";
 				}
+				$secName = $this->session->userdata("whs_name") . " ($secName)";
+				$url = base_url("approval/")."?&d={$this->session->userdata('whs_role')}&p={$this->session->userdata('whs_kode_provinsi')}&k={$this->session->userdata('whs_kode_kabupaten')}";
+				$this->mdb->send_approval_request([$sendTo, $secName, $title, $url]);
 				echo json_encode($outputNilai);
 			}
 
 		}
 
 	}
-	// public function get_list_kategori()
-	// {
-	// 	$kode_bps_kategori_f = ['6101', '6102', '6105', '6107', '6108', '6411', '6501', '6504', '5303', '5305', '5306', '5321', '9403', '9420', '9501', '9502', '9708'];
-	// 	$kode_bps_kategori_e = ['1301', '1410', '1901', '1902', '1903', '1904', '1905', '1906', '1971', '2101', '2102', '2103', '2104', '2105', '2171', '2172', '3101', '5105', '5201', '5202', '5203', '5204', '5205', '5206', '5207', '5208', '5271', '5272', '5301', '5302', '5303', '5304', '5305', '5306', '5307', '5308', '5309', '5310', '5311', '5312', '5313', '5314', '5315', '5316', '5317', '5318', '5319', '5320', '5321', '5371', '7103', '7104', '7108', '7201', '7211', '7301', '7309', '7407', '7412', '8101', '8102', '8103', '8104', '8105', '8106', '8107', '8108', '8109', '8171', '8172', '8201', '8202', '8203', '8204', '8205', '8206', '8207', '8208', '8271', '8272', '9201', '9408', '9409', '9427'];
-	// 	$kode_bps_kategori_g = ['1101', '1108', '1214', '1218', '1301', '1409', '1410', '1703', '1813', '1901', '1902', '1905', '2101', '2102', '2103', '2105', '2171', '3529', '5207', '5208', '5303', '5307', '5310', '5314', '5320', '6101', '6405', '6504', '7103', '7104', '7201', '7203', '7206', '7407', '7505', '8101', '8102', '8105', '8107', '8108', '8205', '8207', '9201', '9409', '9419'];
-
-
-	// 	$sumatera = ["11","12","13","14","15","16","17","18","19"];
-	// 	$kepriau = ["21"];
-	// 	$jawa = ["31","32","33","34","35","36"];
-	// 	$bali = ["51"];
-	// 	$nusa = ["52","53"];
-	// 	$maluku = ["81", "82"];
-	// 	$kalimantan = ["61","62","63","64","65"];
-	// 	$sulawesi = ["71","72","73","74","75","76"];
-	// 	$papua = ["91", "92", "94", "95", "96", "97"];
-
-	// 	// $data = $this->mdb->getdatawhereselect("vw_kabupaten", "kode_kabupaten, nama_kabupaten, nama_provinsi", null, null, null, ["kode_kabupaten", $kode_bps_kategori_e]);
-	// 	$data = $this->mdb->getdatawhereselect("m_provinsi", "kode_provinsi, nama_provinsi", null, null, null, ["kode_provinsi", array_merge($jawa, $bali)]);
-	// 	echo json_encode($data);die;
-
-
-	// 	if(in_array($idkab, $kode_bps_kategori_g)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "g"]);
-	// 	}elseif(in_array($idkab, $kode_bps_kategori_f)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "f"]);
-	// 	}elseif(in_array($id, $kepriau)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "f"]);
-	// 	}elseif(in_array($idkab, $kode_bps_kategori_e)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "e"]);
-	// 	}elseif(in_array($id, $papua)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "d"]);
-	// 	}elseif(in_array($id, $nusa) || in_array($id, $maluku)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "c"]);
-	// 	}elseif(in_array($id, $sumatera) || in_array($id, $kalimantan) || in_array($id, $sulawesi)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "b"]);
-	// 	}elseif(in_array($id, $jawa) || in_array($id, $bali)){
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "a"]);
-	// 	}else{
-	// 		return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "x"]);
-	// 	}
-	// }
-	private function pengkalian_wilayah($id, $idkab=null)
+	private function pengkalian_wilayah($id, $idkab=null, $var=null, $idBadan=null)
 	{
+		if($var == "sekdprd"){
+			return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "x"]);
+		}
+		if($var == "badan" || $var == "dinas"){
+			$dataBadan = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $idBadan]);
+			if($dataBadan){
+				$arr = ["X", "U", "BB", "CC"];
+				if(in_array($dataBadan->kode_badan, $arr)){
+					return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "x"]);
+				}
+			}else{
+				return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "x"]);
+			}
+		}
+		$kode_kota = ['1171', '1172', '1173', '1174', '1175', '1271', '1272', '1273', '1274', '1275', '1276', '1277', '1278', '1371', '1372', '1373', '1374', '1375', '1376', '1471', '1472', '1473', '1571', '1572', '1671', '1672', '1673', '1674', '1771', '1871', '1971', '2171', '2172', '3171', '3172', '3173', '3174', '3175', '3271', '3272', '3273', '3274', '3275', '3276', '3277', '3278', '3279', '3371', '3372', '3373', '3374', '3375', '3376', '3471', '3571', '3572', '3573', '3574', '3575', '3576', '3577', '3578', '3671', '3672', '3673', '3674', '5171', '5271', '5272', '6171', '6172', '6271', '6371', '6372', '6471', '6472', '6474', '6571', '7171', '7172', '7173', '7174', '7271', '7371', '7372', '7373', '7471', '7472', '7571', '8171', '8172', '8271', '8272', '9171', '9271', '9471'];
 		$kode_bps_kategori_f = ['6101', '6102', '6105', '6107', '6108', '6411', '6501', '6504', '5303', '5305', '5306', '5321', '9403', '9420', '9501', '9502', '9708'];
 		$kode_bps_kategori_e = ['1301', '1410', '1901', '1902', '1903', '1904', '1905', '1906', '1971', '2101', '2102', '2103', '2104', '2105', '2171', '2172', '3101', '5105', '5201', '5202', '5203', '5204', '5205', '5206', '5207', '5208', '5271', '5272', '5301', '5302', '5303', '5304', '5305', '5306', '5307', '5308', '5309', '5310', '5311', '5312', '5313', '5314', '5315', '5316', '5317', '5318', '5319', '5320', '5321', '5371', '7103', '7104', '7108', '7201', '7211', '7301', '7309', '7407', '7412', '8101', '8102', '8103', '8104', '8105', '8106', '8107', '8108', '8109', '8171', '8172', '8201', '8202', '8203', '8204', '8205', '8206', '8207', '8208', '8271', '8272', '9201', '9408', '9409', '9427'];
 		$kode_bps_kategori_g = ['1101', '1108', '1214', '1218', '1301', '1409', '1410', '1703', '1813', '1901', '1902', '1905', '2101', '2102', '2103', '2105', '2171', '3529', '5207', '5208', '5303', '5307', '5310', '5314', '5320', '6101', '6405', '6504', '7103', '7104', '7201', '7203', '7206', '7407', '7505', '8101', '8102', '8105', '8107', '8108', '8205', '8207', '9201', '9409', '9419'];
@@ -627,7 +668,9 @@ class Variable extends CI_Controller {
 		$sulawesi = ["71","72","73","74","75","76"];
 		$papua = ["91", "92", "94", "95", "96", "97"];
 
-		if(in_array($idkab, $kode_bps_kategori_g)){
+		if(in_array($idkab, $kode_kota)){
+			return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "b"]);
+		}elseif(in_array($idkab, $kode_bps_kategori_g)){
 			return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "g"]);
 		}elseif(in_array($idkab, $kode_bps_kategori_f)){
 			return $this->mdb->getrowdatawhere("m_kategori_perkalian", ["kode" => "f"]);
@@ -651,6 +694,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data["title"] = "Add Variable";
 		$data["tipe_variable"] = "sekda";
@@ -667,6 +712,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data["title"] = "Add Variable";
 		$data["tipe_variable"] = "sekdprd";
@@ -683,6 +730,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data["title"] = "Add Variable";
 		$data["tipe_variable"] = "inspektorat";
@@ -699,6 +748,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data["title"] = "Add Variable";
 		$data["tipe_variable"] = "dinas";
@@ -718,6 +769,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data["title"] = "Add Variable";
 		$data["tipe_variable"] = "badan";
@@ -735,6 +788,8 @@ class Variable extends CI_Controller {
 	{
 		if($this->session->userdata('whs_role')=="admin" || $this->session->userdata('whs_role')=="superadmin"){
 			redirect(site_url('dashboard'));
+		}elseif($this->session->userdata('whs_role')=="kl"){
+			redirect(site_url('approval'));
 		}
 		$data["title"] = "Add Variable";
 		$data["tipe_variable"] = "kecamatan";
@@ -788,7 +843,7 @@ class Variable extends CI_Controller {
 		$varSoal = $this->mdb->getrowdatawhere("tb_variable_soal", $whereVarSoal);
 		if($tipeVar == "dinas" || $tipeVar == "badan"){
 			$whereVarSoal["id_badan"] = $idBadan;
-			$badan = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $idBadan, "tahun" => $this->session->userdata('whs_tahun')]);
+			$badan = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $idBadan, "tahun" => $tahun]);
 			if($badan){
 				if($badan->tipe_penilaian == "terisi"){
 					echo "100";
@@ -835,7 +890,7 @@ class Variable extends CI_Controller {
 		$badanName = "";
 		if($tipeVar == "dinas" || $tipeVar == "badan"){
 			$whereJawabanTeknis["id_badan"] = $idBadan;
-			$namaBadanTemp = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $idBadan, "tahun" => $this->session->userdata('whs_tahun')]);
+			$namaBadanTemp = $this->mdb->getrowdatawhere("m_badan", ["id_badan" => $idBadan, "tahun" => $tahun]);
 			if($namaBadanTemp->parent == ""){
 				$badanName = ucwords(strtolower($namaBadanTemp->nama_badan))." ";
 			}else{
@@ -888,7 +943,7 @@ class Variable extends CI_Controller {
 				'skor' => (($v->bobot / 100) * $v->{"skala_{$ans}"}),
 			];
 		}
-		$html = '<div class="text-center h5">Faktor Umum</div><div class="table-responsive mb-2"><table class="table table-bordered mb-0 border"><thead class="text-center"><tr><th>No</th><th>Indikator & Kelas Interval</th><th>Skor</th></tr></thead><tbody>';
+		$html = '<div class="text-center h5">Faktor Umum</div><div class="table-responsive mb-2"><table class="table table-bordered mb-0 border"><thead class="text-center"><tr><th width="5%">No</th><th width="80%">Indikator & Kelas Interval</th><th width="15%">Skor</th></tr></thead><tbody>';
 		foreach ($values as $k => $v) {
 			$html .= <<<SMF
 			<tr><td class="text-center">{$v['x']}</td><td><p class="m-0">{$v['soal']}</p>
@@ -919,7 +974,7 @@ class Variable extends CI_Controller {
 				'skor' => (($v->bobot / 100) * $v->{"skala_{$ans}"}),
 			];
 		}
-		$html .= '<div class="text-center h5">Faktor Teknis</div><div class="table-responsive mb-2"><table class="table table-bordered mb-0 border"><thead class="text-center"><tr><th>No</th><th>Indikator & Kelas Interval</th><th>Skor</th></tr></thead><tbody>';
+		$html .= '<div class="text-center h5">Faktor Teknis</div><div class="table-responsive mb-2"><table class="table table-bordered mb-0 border"><thead class="text-center"><tr><th width="5%">No</th><th width="80%">Indikator & Kelas Interval</th><th width="15%">Skor</th></tr></thead><tbody>';
 		foreach ($values as $k => $v) {
 			$html .= <<<SMF
 			<tr><td class="text-center">{$v['x']}</td><td><p class="m-0">{$v['soal']}</p>
@@ -934,7 +989,8 @@ class Variable extends CI_Controller {
 		$skorDataUmum = $this->mdb->getrowdatawhere("tb_skor", $whereJawaban);
 		$skorDataTeknis = $this->mdb->getrowdatawhere("tb_skor", $whereJawabanTeknis);
 		if($skorDataUmum && $skorDataTeknis){
-			$perkalian = $this->mdb->getrowdatawhere("m_kategori_perkalian", ["id_kategori_perkalian" => $skorDataUmum->id_kategori_perkalian]);
+			$perkalian = $this->mdb->getrowdatawhere("m_kategori_perkalian", ["id_kategori_perkalian" => $skorDataTeknis->id_kategori_perkalian]);
+			$perkalianText = ($perkalian->kategori ? "Pengkalian Wilayah:  {$perkalian->perkalian} ({$perkalian->kategori})" : "");
 			$skorUmum = $skorDataUmum ? $skorDataUmum->skor : 0;
 			$skorTeknis = $skorDataTeknis->skor;
 			if($skorUmum == 0){
@@ -942,7 +998,7 @@ class Variable extends CI_Controller {
 				<p>$title mempunyai Nilai Tipelogi -. dengan Nilai Skor : </p>
 				<p class="m-0">1. Variable Umum: (Variable Umum belum diisi)</p>
 				<p class="m-0">2. Variable Teknis: {$skorTeknis}</p>
-				<p class="m-0">Pengkalian Wilayah: {$perkalian->kategori}</p>
+				<p class="m-0">{$perkalianText}</p>
 				<p>Total Skor: (Variable Umum belum diisi) (-)</p>
 				SMF;
 			}else{
@@ -964,7 +1020,7 @@ class Variable extends CI_Controller {
 				<p>$title mempunyai Nilai Tipelogi $kategori. dengan Nilai Skor : </p>
 				<p class="m-0">1. Variable Umum: {$skorUmum}</p>
 				<p class="m-0">2. Variable Teknis: {$skorTeknis}</p>
-				<p>Pengkalian Wilayah: {$perkalian->kategori}</p>
+				<p>{$perkalianText}</p>
 				<p class="m-0">Total Skor: $totalSkor ($kategori)</p>
 				SMF;
 			}
@@ -1123,18 +1179,19 @@ class Variable extends CI_Controller {
 		$skorDataTeknis = $this->mdb->getrowdatawhere("tb_skor", $whereJawabanTeknis);
 		if($skorDataUmum && $skorDataTeknis){
 			$perkalian = $this->mdb->getrowdatawhere("m_kategori_perkalian", ["id_kategori_perkalian" => $skorDataTeknis->id_kategori_perkalian]);
+			$perkalianText = $perkalian->perkalian . ($perkalian->kategori ? " ({$perkalian->kategori})" : "");
 			$skorUmum = $skorDataUmum ? $skorDataUmum->skor : 0;
 			$skorTeknis = $skorDataTeknis->skor;
 			if($skorUmum == 0){
 				$templateProcessor->setValue('skor_umum', "(Variable Umum belum diisi)");
 				$templateProcessor->setValue('skor_teknis', $skorTeknis);
-				$templateProcessor->setValue('pengkalian', $perkalian->kategori);
+				$templateProcessor->setValue('pengkalian', $perkalianText);
 				$templateProcessor->setValue('total_skor', "(Variable Umum belum diisi)");
 				$templateProcessor->setValue('kategori', "-");
 			}else{
 				$templateProcessor->setValue('skor_umum', $skorUmum);
 				$templateProcessor->setValue('skor_teknis', $skorTeknis);
-				$templateProcessor->setValue('pengkalian', $perkalian->kategori);
+				$templateProcessor->setValue('pengkalian', $perkalianText);
 				$skorInt = (($skorTeknis * 0.8)+($skorUmum * 0.2)) * $perkalian->perkalian;
 				$totalSkor = number_format($skorInt, 1);
 				$kategori = "";
@@ -1179,6 +1236,19 @@ class Variable extends CI_Controller {
 			border: 1px solid #000;
 			padding: 5px;
 			font-size: 11pt;
+		}
+
+		thead tr th:nth-child(1),
+		tbody tr td:nth-child(1) {
+			width: 5%;
+		}
+		thead tr th:nth-child(2),
+		tbody tr td:nth-child(2) {
+			width: 80%;
+		}
+		thead tr th:nth-child(3),
+		tbody tr td:nth-child(3) {
+			width: 15%;
 		}
 		p { margin: 0; padding: 0px; line-height: 1; }
 		</style>' . $html;
@@ -1308,6 +1378,7 @@ class Variable extends CI_Controller {
 			$skorDataTeknis = $this->mdb->getrowdatawhere("tb_skor", $whereJawaban);
 			if($skorDataTeknis){
 				$perkalian = $this->mdb->getrowdatawhere("m_kategori_perkalian", ["id_kategori_perkalian" => $skorDataTeknis->id_kategori_perkalian]);
+				$perkalianText = $perkalian->perkalian . ($perkalian->kategori ? " ({$perkalian->kategori})" : "");
 
 				$skorDataUmum = $this->mdb->getrowdatawhere("tb_skor", ["tipe_soal" => "umum", "tahun" => $this->session->userdata('whs_tahun'), "kode_kabupaten" => $this->session->userdata('whs_kode_kabupaten'), "kode_provinsi" => $this->session->userdata('whs_kode_provinsi'), "tipe_daerah" => $this->session->userdata('whs_role')]);
 				$skorUmum = $skorDataUmum ? $skorDataUmum->skor : 0;
@@ -1315,13 +1386,13 @@ class Variable extends CI_Controller {
 				if($skorUmum == 0){
 					$templateProcessor->setValue('skor_umum', "(Variable Umum belum diisi)");
 					$templateProcessor->setValue('skor_teknis', $skorTeknis);
-					$templateProcessor->setValue('pengkalian', $perkalian->kategori);
+					$templateProcessor->setValue('pengkalian', $perkalianText);
 					$templateProcessor->setValue('total_skor', "(Variable Umum belum diisi)");
 					$templateProcessor->setValue('kategori', "-");
 				}else{
 					$templateProcessor->setValue('skor_umum', $skorUmum);
 					$templateProcessor->setValue('skor_teknis', $skorTeknis);
-					$templateProcessor->setValue('pengkalian', $perkalian->kategori);
+					$templateProcessor->setValue('pengkalian', $perkalianText);
 					$skorInt = (($skorTeknis * 0.8)+($skorUmum * 0.2)) * $perkalian->perkalian;
 					$totalSkor = number_format($skorInt, 1);
 					$kategori = "";
@@ -1369,6 +1440,19 @@ class Variable extends CI_Controller {
 			border: 1px solid #000;
 			padding: 5px;
 			font-size: 11pt;
+		}
+
+		thead tr th:nth-child(1),
+		tbody tr td:nth-child(1) {
+			width: 5%;
+		}
+		thead tr th:nth-child(2),
+		tbody tr td:nth-child(2) {
+			width: 80%;
+		}
+		thead tr th:nth-child(3),
+		tbody tr td:nth-child(3) {
+			width: 15%;
 		}
 		p { margin: 0; padding: 0px; line-height: 1; }
 		</style>' . $html;

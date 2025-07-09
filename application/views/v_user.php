@@ -30,8 +30,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                             <th>No</th>
                             <th>Username</th>
                             <th>Role</th>
-                            <th>Provinsi</th>
-                            <th>Kabupaten</th>
+                            <th>Afiliasi</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -41,8 +40,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <td class="text-center"></td>
                                 <td><?= $v->username ?></td>
                                 <td><?= $v->role ?></td>
-                                <td><?= $v->nama_provinsi ?></td>
-                                <td><?= $v->nama_kabupaten ?></td>
+                                <td><?= $v->role == "provinsi" ? $v->nama_provinsi : ($v->role == "kabupaten" ? $v->nama_kabupaten : $v->nama_kl)?></td>
                                 <td><button type="button" data-id="<?= $v->id ?>" class="btn btn-primary btn-edit btn-sm me-1 mb-1"><i class="bi bi-pencil-square"></i> Edit</button> <button type="button" data-id="<?= $v->id ?>" class="btn btn-danger btn-delete btn-sm me-1 mb-1"><i class="bi bi-trash"></i> Hapus</button></td>
                             </tr>
                         <?php } ?>
@@ -123,8 +121,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <option value="admin">Admin</option>
                                             <option value="provinsi">Provinsi</option>
                                             <option value="kabupaten">Kabupaten</option>
+                                            <option value="kl">K/L</option>
                                             <?php if($this->session->userdata("whs_role") == "superadmin"){ ?>
                                                 <option value="superadmin">Superadmin</option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 kl-container d-none">
+                                <label class=" mt-2" for="kl">K/L</label>
+                            </div>
+                            <div class="col-md-8 kl-container d-none">
+                                <div class="my-1">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-map h5"></i></span>
+                                        <select class="choices form-select" id="kl" name="kl">
+                                            <option value="" selected>(Pilih K/L)</option>
+                                            <?php foreach ($kl as $k => $v) { ?>
+                                                <option value="<?= $v->id_kl ?>"><?= $v->nama_kl ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
@@ -226,9 +241,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         const prov_select = $('#provinsi')[0];
         const kab_select = $('#kabupaten')[0];
         const role_select = $('#role')[0];
+        const kl_select = $('#kl')[0];
         const $prov_select = $('#provinsi');
         const $kab_select = $('#kabupaten');
         const $role_select = $('#role');
+        const $kl_select = $('#kl');
         var choices = new Choices(prov_select, {
             removeItemButton: true,
             itemSelectText: "",
@@ -241,6 +258,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             removeItemButton: true,
             itemSelectText: "",
             shouldSort: false,
+        });
+        var choices4 = new Choices(kl_select, {
+            removeItemButton: true,
+            itemSelectText: "",
         });
         let jquery_datatable = $("#table1").DataTable({
             "responsive": true,
@@ -318,6 +339,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     change_select_state(data.role);
                     choices3.setChoiceByValue(data.role);
                     choices.setChoiceByValue(data.kode_provinsi);
+                    choices4.setChoiceByValue(data.id_kl);
                     if(data.role == "kabupaten"){
                         var idkab = data.kode_kabupaten;
                         $.ajax({
@@ -355,17 +377,36 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 $('.kab-container').addClass("d-none");
                 $('#provinsi').prop("required", true);
                 $('#kabupaten').prop("required", false);
+                $('.kl-container').addClass("d-none");
+                $('#kl').prop("required", false);
+                choices4.setChoiceByValue('');
                 choices2.setChoiceByValue('');
             } else if(elem == "kabupaten"){
                 $('.prov-container').removeClass("d-none");
                 $('.kab-container').removeClass("d-none");
                 $('#provinsi').prop("required", true);
                 $('#kabupaten').prop("required", true);
+                $('.kl-container').addClass("d-none");
+                $('#kl').prop("required", false);
+                choices4.setChoiceByValue('');
+                choices2.setChoiceByValue('');
+            } else if(elem == "kl"){
+                $('.kl-container').removeClass("d-none");
+                $('#kl').prop("required", true);
+                $('.prov-container').addClass("d-none");
+                $('.kab-container').addClass("d-none");
+                $('#provinsi').prop("required", false);
+                $('#kabupaten').prop("required", false);
+                choices.setChoiceByValue('');
+                choices2.setChoiceByValue('');
             } else {
                 $('.prov-container').addClass("d-none");
                 $('.kab-container').addClass("d-none");
                 $('#provinsi').prop("required", false);
                 $('#kabupaten').prop("required", false);
+                $('.kl-container').addClass("d-none");
+                $('#kl').prop("required", false);
+                choices4.setChoiceByValue('');
                 choices.setChoiceByValue('');
                 choices2.setChoiceByValue('');
             }

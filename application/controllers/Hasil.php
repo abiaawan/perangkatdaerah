@@ -32,10 +32,11 @@ class Hasil extends CI_Controller {
 		$kode_kabupaten = $this->input->post("kabupaten");
 		$html = <<<SMF
 		<div class="table-responsive mb-2">
-		<table class="table table-bordered mb-0 border">
+		<table class="table table-bordered mb-0 border w-100">
 		<thead class="text-center">
 		<tr>
-		<th colspan="2">Nomenklatur Perangkat Daerah</th>
+		<th></th>
+		<th>Nomenklatur Perangkat Daerah</th>
 		<th>Skor</th>
 		<th>Detail</th>
 		</tr>
@@ -117,11 +118,11 @@ class Hasil extends CI_Controller {
 					if($skorSub <> "-"){
 						if($skorSub <> ">800 (tipe A)"){
 							$btn = <<<SMF
-							<button type="button" data-role="{$role}" data-var="{$v[0]}" data-tahun="{$tahun}" data-prov="{$kode_provinsi}" data-kab="{$kode_kabupaten}" data-badan="{$va->id_badan}" class="btn btn-success me-1 mb-1 dl-skor-btn"><i class="bi bi-download"></i></button>
+							<button type="button" data-role="{$role}" data-var="{$v[0]}" data-tahun="{$tahun}" data-prov="{$kode_provinsi}" data-kab="{$kode_kabupaten}" data-badan="{$va->kode_kecamatan}" class="btn btn-success me-1 mb-1 dl-skor-btn"><i class="bi bi-download"></i></button>
 							SMF;
 						}
 						$btn .= <<<SMF
-						<button type="button" data-role="{$role}" data-var="{$v[0]}" data-tahun="{$tahun}" data-prov="{$kode_provinsi}" data-kab="{$kode_kabupaten}" data-badan="{$va->id_badan}" class="btn btn-primary me-1 mb-1 view-skor-btn"><i class="bi bi-eye"></i></button>
+						<button type="button" data-role="{$role}" data-var="{$v[0]}" data-tahun="{$tahun}" data-prov="{$kode_provinsi}" data-kab="{$kode_kabupaten}" data-badan="{$va->kode_kecamatan}" class="btn btn-primary me-1 mb-1 view-skor-btn"><i class="bi bi-eye"></i></button>
 						SMF;
 					}
 					$html .= <<<SMF

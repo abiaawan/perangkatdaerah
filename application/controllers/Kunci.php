@@ -32,10 +32,11 @@ class Kunci extends CI_Controller {
 		$kode_kabupaten = $this->input->post("kabupaten");
 		$html = <<<SMF
 		<div class="table-responsive mb-2">
-		<table class="table table-bordered mb-0 border">
+		<table class="table table-bordered mb-0 border w-100">
 		<thead class="text-center">
 		<tr>
-		<th colspan="2">Nomenklatur Perangkat Daerah</th>
+		<th></th>
+		<th>Nomenklatur Perangkat Daerah</th>
 		<th>Variable Umum</th>
 		<th>Variable Teknis</th>
 		</tr>

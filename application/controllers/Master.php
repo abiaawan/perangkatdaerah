@@ -62,7 +62,7 @@ class Master extends CI_Controller {
 			$this->session->set_flashdata('success', "Berhasil menambah Dinas!");
 			redirect(site_url('master/dinas/').$this->input->post("tahun"));
 		}else{
-			$this->mdb->putdatawhere("m_badan", ["id_badan" => $this->input->post("id")], $data);
+			$this->mdb->putdatawhere("m_badan", ["id_badan" => $this->input->post("id_badan")], $data);
 			$this->session->set_flashdata('success', "Berhasil mengedit Dinas!");
 			redirect(site_url('master/dinas/').$this->input->post("tahun"));
 		}
@@ -85,7 +85,7 @@ class Master extends CI_Controller {
 			$this->session->set_flashdata('success', "Berhasil menambah Badan!");
 			redirect(site_url('master/badan/').$this->input->post("tahun"));
 		}else{
-			$this->mdb->putdatawhere("m_badan", ["id_badan" => $this->input->post("id")], $data);
+			$this->mdb->putdatawhere("m_badan", ["id_badan" => $this->input->post("id_badan")], $data);
 			$this->session->set_flashdata('success', "Berhasil mengedit Badan!");
 			redirect(site_url('master/badan/').$this->input->post("tahun"));
 		}
